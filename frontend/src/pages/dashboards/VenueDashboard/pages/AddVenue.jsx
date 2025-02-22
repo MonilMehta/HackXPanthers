@@ -23,6 +23,7 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
+import AWSHelper from '@/utils/awsHelper';
 
 const COMMON_AMENITIES = [
   "Free WiFi", "Parking", "Air Conditioning", "Catering Service",
@@ -107,7 +108,7 @@ const AddVenue = () => {
     setFormData(prev => ({ ...prev, capacity: value[0] }));
   };
 
-  const handleMediaUpload = (e) => {
+  const handleMediaUpload = async (e) => {
     const files = Array.from(e.target.files);
     const maxFiles = 15;
     
@@ -116,13 +117,18 @@ const AddVenue = () => {
       return;
     }
 
-    const newMedia = files.map(file => ({
-      file,
-      type: file.type.startsWith('image/') ? 'image' : 'video',
-      url: URL.createObjectURL(file)
-    }));
-
-    setMedia(prev => [...prev, ...newMedia]);
+    for (const file of files) {
+      try {
+        const url = await AWSHelper.upload(file, formData.name.replace(/\s+/g, '-').toLowerCase());
+        setMedia(prev => [...prev, {
+          file,
+          type: file.type.startsWith('image/') ? 'image' : 'video',
+          url
+        }]);
+      } catch (error) {
+        toast.error(`Failed to upload ${file.name}`);
+      }
+    }
   };
 
   const removeMedia = (index) => {
@@ -157,8 +163,19 @@ const AddVenue = () => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
+      // Convert the media array to URLs only
+      const mediaUrls = media.map(m => m.url);
+      
+      const venueData = {
+        ...formData,
+        media: mediaUrls,
+        amenities: selectedAmenities
+      };
+
+      // Your API call to save venue data
       await new Promise(resolve => setTimeout(resolve, 1500));
       toast.success("Venue added successfully!");
+      
       // Reset form
       setFormData({
         name: '',

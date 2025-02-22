@@ -9,10 +9,10 @@ import { useNavigate } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { currentUser, updateDetails } from "@/api/user.api";
 import { getFollowings } from "@/api/follower.api";
+import AWSHelper from '@/utils/awsHelper';
 
 const Profile = () => {
   const [userData, setUserData] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
   const [error, setError] = useState(null);
   const [followings, setFollowings] = useState([]);

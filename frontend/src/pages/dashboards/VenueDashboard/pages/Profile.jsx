@@ -5,6 +5,7 @@ import QuickStats from '../components/QuickStats';
 import VenueCard from '../components/VenueCard';
 import EditProfileModal from '../components/EditProfileModal';
 import ManageVenueModal from '../components/ManageVenueModal';
+import AWSHelper from '@/utils/awsHelper';
 
 const VenueManagerDashboard = () => {
   const [managerData, setManagerData] = useState({
@@ -44,20 +45,36 @@ const VenueManagerDashboard = () => {
   const [selectedVenue, setSelectedVenue] = useState(null);
   const [imagePreview, setImagePreview] = useState(managerData.profileImage);
 
-  const handleProfileUpdate = (newData) => {
-    setManagerData(prev => ({ ...prev, ...newData }));
-    toast.success('Profile Updated Successfully');
-  };
-
-  const handleImageUpload = (e) => {
+  const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-        setManagerData(prev => ({ ...prev, profileImage: reader.result }));
-      };
-      reader.readAsDataURL(file);
+      try {
+        const url = await AWSHelper.upload(
+          file, 
+          managerData.name.replace(/\s+/g, '-').toLowerCase()
+        );
+        setImagePreview(url);
+        setManagerData(prev => ({ ...prev, profileImage: url }));
+        toast.success('Profile image updated successfully');
+      } catch (error) {
+        console.error('Error uploading image:', error);
+        toast.error('Failed to upload image');
+      }
+    }
+  };
+
+  const handleProfileUpdate = async (newData) => {
+    try {
+      if (newData.profileImage && newData.profileImage !== managerData.profileImage) {
+        // Image was already uploaded in handleImageUpload
+        delete newData.profileImage;
+      }
+      
+      setManagerData(prev => ({ ...prev, ...newData }));
+      toast.success('Profile Updated Successfully');
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast.error('Failed to update profile');
     }
   };
 

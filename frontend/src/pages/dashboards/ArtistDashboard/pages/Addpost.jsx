@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import AWSHelper from '@/utils/awsHelper';
 
 const PreviewCard = ({ mediaType, mediaPreview, caption }) => {
   const [isHovered, setIsHovered] = useState(false);
@@ -255,6 +256,29 @@ const AddPost = () => {
     setError("");
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
+    }
+  };
+
+  const handleMediaUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    const maxFiles = 15;
+    
+    if (media.length + files.length > maxFiles) {
+      toast.error(`You can only upload up to ${maxFiles} files`);
+      return;
+    }
+  
+    for (const file of files) {
+      try {
+        const url = await AWSHelper.upload(file, formData.name || 'artist-post');
+        setMedia(prev => [...prev, {
+          file,
+          type: file.type.startsWith('image/') ? 'image' : 'video',
+          url
+        }]);
+      } catch (error) {
+        toast.error(`Failed to upload ${file.name}`);
+      }
     }
   };
 

@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import Posts from "./Posts";
 import EditProfileModal from "./modals/EditProfileModal";
+import AWSHelper from '@/utils/awsHelper';
 
 const Profile = () => {
   const [profileData, setProfileData] = useState({
@@ -44,15 +45,31 @@ const Profile = () => {
     },
   });
 
-  const handleProfileUpdate = (updatedData) => {
-    setProfileData((prev) => ({
-      ...prev,
-      ...updatedData,
-      socials: {
-        ...prev.socials,
-        ...(updatedData.socials || {}),
-      },
-    }));
+  const handleProfileUpdate = async (updatedData) => {
+    try {
+      if (updatedData.avatarFile) {
+        const url = await AWSHelper.upload(
+          updatedData.avatarFile, 
+          profileData.username
+        );
+        updatedData.avatar = url;
+        delete updatedData.avatarFile;
+      }
+
+      setProfileData(prev => ({
+        ...prev,
+        ...updatedData,
+        socials: {
+          ...prev.socials,
+          ...(updatedData.socials || {}),
+        },
+      }));
+
+      toast.success('Profile updated successfully');
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast.error('Failed to update profile');
+    }
   };
 
   return (
