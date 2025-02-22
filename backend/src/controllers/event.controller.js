@@ -1,7 +1,7 @@
 import { Event } from "../models/event.models.js";
 import { Admin } from "../models/admin.models.js";
 import { VenueManager } from "../models/venueManager.models.js";
-import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 
 const createEvent = async (req, res) => {
     try {
@@ -15,14 +15,20 @@ const createEvent = async (req, res) => {
             tags,
             mediaAssets,
             proposedPrice,
+            percentageCommission,
             venueId,
             startTime,
             endTime,
         } = req.body;
 
         // Validate required fields
-        if (!title || !description || !eventType || !eventDate || !minAge || !mediaAssets || !proposedPrice || !venueId || !startTime || !endTime) {
+        if (!title || !description || !eventType || !eventDate || !minAge || !mediaAssets || !venueId || !startTime || !endTime) {
             return res.status(400).json({ message: "Please provide all required fields." });
+        }
+
+        // Validate either proposedPrice or percentageCommission
+        if (!proposedPrice && !percentageCommission) {
+            return res.status(400).json({ message: "Please provide either a proposed price or a percentage commission." });
         }
 
         // Create the event
@@ -37,10 +43,12 @@ const createEvent = async (req, res) => {
             tags,
             mediaAssets,
             proposedPrice,
+            percentageCommission,
             venueId,
             startTime,
             endTime,
-            status: "pending_approval", // Default status
+            status: "pending_approval",
+            negotiationHistory: [],
         });
 
         res.status(201).json({
@@ -182,6 +190,9 @@ const rejectEvent = async (req, res) => {
             return res.status(404).json({ message: "Event not found" });
         }
 
+        if(event.status === "approved"){
+            return res.status(400).json({ message: "Event is already approved" });
+        }
         // Update the event status and rejection details
         event.status = "rejected";
         event.rejectionReason = rejectionReason;
@@ -298,7 +309,7 @@ const getEventById = async (req, res) => {
         const { eventId } = req.params;
 
         const eventDetails = await Event.aggregate([
-            { $match: { _id: mongoose.Types.ObjectId(eventId) } },
+            { $match: { _id: new mongoose.Types.ObjectId(eventId) } },
             {
                 $lookup: {
                     from: "artists",
@@ -331,6 +342,8 @@ const getEventById = async (req, res) => {
                     mediaAssets: 1,
                     proposedPrice: 1,
                     status: 1,
+                    negotiationHistory: 1,
+                    approvalDate: 1,
                     artistDetails: {
                         fullName: 1,
                         email: 1,
@@ -364,4 +377,75 @@ const getEventById = async (req, res) => {
     }
 };
 
-export { createEvent, getEventDetails, approveEventByAdmin, approveEventByVenueManager, rejectEvent, getEventsByDate, filterEventsByType, getPendingEventsAdmin, getPendingEventsVenueManager, getEventById };
+const proposeNegotiation = async (req, res) => {
+    try {
+        const { eventId, newProposedPrice, newPercentageCommission } = req.body;
+        const venueManager = await VenueManager.findById(req.user?._id);
+
+        if (!venueManager) {
+            return res.status(404).json({ message: "Venue Manager not found" });
+        }
+
+        const event = await Event.findById(eventId);
+        if (!event) {
+            return res.status(404).json({ message: "Event not found" });
+        }
+
+        if (event.status !== "approved_by_admin") {
+            return res.status(400).json({ message: "Event is not in a negotiable state" });
+        }
+
+        event.status = "negotiation_pending";
+        event.negotiationHistory.push({
+            proposedBy: "venueManager",
+            proposedPrice: newProposedPrice,
+            percentageCommission: newPercentageCommission,
+            date: new Date()
+        });
+        
+        await event.save();
+        res.status(200).json({ message: "Negotiation request sent", event });
+    } catch (error) {
+        console.error("Error proposing negotiation:", error);
+        res.status(500).json({ message: "Failed to propose negotiation", error: error.message });
+    }
+};
+
+const respondToNegotiation = async (req, res) => {
+    try {
+        const { eventId, response, counterProposedPrice, counterPercentageCommission } = req.body;
+        const event = await Event.findById(eventId);
+        
+        if (!event) {
+            return res.status(404).json({ message: "Event not found" });
+        }
+
+        if (event.status !== "negotiation_pending") {
+            return res.status(400).json({ message: "No active negotiation for this event" });
+        }
+
+        if (response === "accept") {
+            event.status = "approved";
+            event.isApproved = true;
+            event.approvalDate = new Date();
+            event.approvedBy = req.user?._id;
+        } else if (response === "reject") {
+            event.status = "approved_by_admin";
+        } else if (response === "counter") {
+            event.negotiationHistory.push({
+                proposedBy: "artist",
+                proposedPrice: counterProposedPrice,
+                percentageCommission: counterPercentageCommission,
+                date: new Date()
+            });
+        }
+
+        await event.save();
+        res.status(200).json({ message: "Negotiation response recorded", event });
+    } catch (error) {
+        console.error("Error responding to negotiation:", error);
+        res.status(500).json({ message: "Failed to respond to negotiation", error: error.message });
+    }
+};
+
+export { createEvent, getEventDetails, approveEventByAdmin, approveEventByVenueManager, rejectEvent, getEventsByDate, filterEventsByType, getPendingEventsAdmin, getPendingEventsVenueManager, getEventById, proposeNegotiation, respondToNegotiation };
