@@ -11,10 +11,6 @@ import mongoose from "mongoose";
         if (!mongoose.Types.ObjectId.isValid(artistId)) {
             throw new ApiError(400, "Invalid artist ID");
         }
-        if (!url) {
-            throw new ApiError(400, "URL is required for the post");
-        }
-
         // Check if an entry already exists for this artist
         let artistPost = await ArtistPost.findOne({ artist: artistId });
 
@@ -41,7 +37,7 @@ import mongoose from "mongoose";
 // 🎬 Get all posts for a specific artist
  const getPosts = async (req, res, next) => {
     try {
-        const { artistId } = req.params;
+        const { artistId } = req.body;
 
         if (!mongoose.Types.ObjectId.isValid(artistId)) {
             throw new ApiError(400, "Invalid artist ID");
@@ -68,7 +64,7 @@ import mongoose from "mongoose";
 // ❤️ Increment like count for a specific post
 const likePost = async (req, res, next) => {
     try {
-        const { artistId, postId } = req.params;
+        const { artistId, postId } = req.body;
 
         if (!mongoose.Types.ObjectId.isValid(artistId) || !mongoose.Types.ObjectId.isValid(postId)) {
             throw new ApiError(400, "Invalid artist or post ID");
