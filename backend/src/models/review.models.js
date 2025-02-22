@@ -22,6 +22,16 @@ const reviewSchema = new Schema(
             max: 5,
             required: true
         },
+        average_Rating: {
+            type: Number,
+            default:0,
+            required: true
+        },
+        total_reviews: {
+            type: Number,
+            default:0,
+            required: true
+        },
         review_desc: {
             type: String,
             required: true

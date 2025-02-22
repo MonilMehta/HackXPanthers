@@ -30,6 +30,8 @@ import venueRouter from './routes/venue.routes.js';
 import eventRouter from './routes/event.routes.js';
 import venueManagerRouter from './routes/venueManager.routes.js';
 import adminRouter from './routes/admin.routes.js'; 
+import ticket_bookRouter from './routes/ticket_book.routes.js';
+import reviewRouter from './routes/review.routes.js';
 
 // declare routes
 app.use("/api/users", userRouter)
@@ -38,6 +40,8 @@ app.use("/api/followers", followersRouter)
 app.use("/api/venues", venueRouter)
 app.use("/api/events", eventRouter)
 app.use("/api/venuemanagers", venueManagerRouter)
-app.use("/api/admins", adminRouter)
+app.use("/api/admin", adminRouter)
+app.use("/api/ticket_book", ticket_bookRouter)
+app.use("/api/reviews", reviewRouter)
 
 export { app }
