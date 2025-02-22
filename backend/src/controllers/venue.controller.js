@@ -1,4 +1,5 @@
 import { Venue } from "../models/venue.models.js";
+import {Event} from "../models/event.models.js";
 import mongoose from "mongoose";
 
 // Function to auto-generate seat arrangements
@@ -97,8 +98,10 @@ const getAllVenues = async (req, res) => {
     }
 };
 
+
 const bookVenue = async (req, res) => {
-    const { eventId, venueId } = req.params;
+    const { eventId, venueId } = req.body;
+    const { startTime, endTime } = req.body;
 
     try {
         // 1️⃣ Check if event exists
@@ -109,14 +112,23 @@ const bookVenue = async (req, res) => {
         const venue = await Venue.findById(venueId);
         if (!venue) return res.status(404).json({ message: "Venue not found." });
 
-        // 3️⃣ Check for time slot conflicts
+        // 3️⃣ Validate start and end time
+        if (!startTime || !endTime) {
+            return res.status(400).json({ message: "Start time and end time are required for booking." });
+        }
+
+        if (startTime >= endTime) {
+            return res.status(400).json({ message: "End time must be after start time." });
+        }
+
+        // 4️⃣ Check for time slot conflicts
         const conflictingEvent = await Event.findOne({
             venueId: venueId,
             eventDate: event.eventDate,
             $or: [
                 {
-                    startTime: { $lt: event.endTime },
-                    endTime: { $gt: event.startTime },
+                    startTime: { $lt: endTime },
+                    endTime: { $gt: startTime },
                 },
             ],
             status: { $in: ["approved", "pending_approval"] },
@@ -128,8 +140,10 @@ const bookVenue = async (req, res) => {
             });
         }
 
-        // 4️⃣ Update event with venue details and status
+        // 5️⃣ Update event with venue details, startTime, endTime, and status
         event.venueId = venueId;
+        event.startTime = startTime;
+        event.endTime = endTime;
         event.status = "pending_approval"; // Assuming approval is needed
         await event.save();
 
@@ -142,7 +156,6 @@ const bookVenue = async (req, res) => {
         res.status(500).json({ message: "Error booking venue.", error: error.message });
     }
 };
-
 
 
 export { registerVenue, getAllVenues, bookVenue };
