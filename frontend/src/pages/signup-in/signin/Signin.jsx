@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -25,15 +25,48 @@ import PageTransition from "@/components/PageTransition";
 
 const Signin = () => {
   const navigate = useNavigate();
-  const [userType, setUserType] = useState("");
-  const [formState, setFormState] = useState({
-    email: "",
-    password: "",
-    adminKey: "",
-    venueId: "",
-    artistId: "",
+  const [userType, setUserType] = useState(() => {
+    // Initialize userType from localStorage if exists
+    return localStorage.getItem("userRole") || "";
+  });
+  const [formState, setFormState] = useState(() => {
+    // Initialize form state from localStorage if exists
+    const savedFormState = localStorage.getItem("formState");
+    return savedFormState
+      ? JSON.parse(savedFormState)
+      : {
+          email: "",
+          password: "",
+          adminKey: "",
+          venueId: "",
+          artistId: "",
+          userType: "",
+        };
   });
   const [isLoading, setIsLoading] = useState(false);
+
+  const handleUserTypeChange = (value) => {
+    setUserType(value);
+    // Save to localStorage
+    localStorage.setItem("userRole", value);
+    // Update form state
+    const newFormState = {
+      ...formState,
+      userType: value,
+    };
+    setFormState(newFormState);
+    localStorage.setItem("formState", JSON.stringify(newFormState));
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    const newFormState = {
+      ...formState,
+      [name]: value,
+    };
+    setFormState(newFormState);
+    localStorage.setItem("formState", JSON.stringify(newFormState));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -42,6 +75,9 @@ const Signin = () => {
     setTimeout(() => {
       setIsLoading(false);
       if (userType) {
+        // Clear storage after successful login if needed
+        // localStorage.removeItem("userRole");
+        // localStorage.removeItem("formState");
         navigate(`/${userType.toLowerCase()}`);
       }
     }, 1500);
@@ -75,15 +111,30 @@ const Signin = () => {
             >
               <div className="space-y-2">
                 <Label>User Type</Label>
-                <Select onValueChange={setUserType} required>
-                  <SelectTrigger className="bg-background/50 backdrop-blur-sm border-primary/20">
+                <Select
+                  onValueChange={handleUserTypeChange}
+                  value={userType}
+                  required
+                >
+                  <SelectTrigger className="w-full bg-background/50 backdrop-blur-sm border-primary/20 hover:bg-background/60 transition-colors">
                     <SelectValue placeholder="Select your role" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ADMIN">Administrator</SelectItem>
-                    <SelectItem value="VENUE">Venue Manager</SelectItem>
-                    <SelectItem value="ARTIST">Artist/Comedian</SelectItem>
-                    <SelectItem value="CUSTOMER">Customer</SelectItem>
+                  <SelectContent className="bg-background/95 backdrop-blur-md border-primary/20">
+                    <SelectItem value="ADMIN" className="hover:bg-primary/10">
+                      Administrator
+                    </SelectItem>
+                    <SelectItem value="VENUE" className="hover:bg-primary/10">
+                      Venue Manager
+                    </SelectItem>
+                    <SelectItem value="ARTIST" className="hover:bg-primary/10">
+                      Artist/Comedian
+                    </SelectItem>
+                    <SelectItem
+                      value="CUSTOMER"
+                      className="hover:bg-primary/10"
+                    >
+                      Customer
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -92,6 +143,9 @@ const Signin = () => {
                 <Label>Email</Label>
                 <Input
                   type="email"
+                  name="email"
+                  value={formState.email}
+                  onChange={handleInputChange}
                   placeholder="you@example.com"
                   required
                   className="bg-background/50 backdrop-blur-sm border-primary/20"
@@ -102,6 +156,9 @@ const Signin = () => {
                 <Label>Password</Label>
                 <Input
                   type="password"
+                  name="password"
+                  value={formState.password}
+                  onChange={handleInputChange}
                   placeholder="••••••••"
                   required
                   className="bg-background/50 backdrop-blur-sm border-primary/20"
@@ -120,6 +177,9 @@ const Signin = () => {
                       <Label>Admin Key</Label>
                       <Input
                         type="text"
+                        name="adminKey"
+                        value={formState.adminKey}
+                        onChange={handleInputChange}
                         placeholder="Enter admin key"
                         className="bg-background/50 backdrop-blur-sm border-primary/20"
                       />
@@ -130,6 +190,9 @@ const Signin = () => {
                       <Label>Venue ID</Label>
                       <Input
                         type="text"
+                        name="venueId"
+                        value={formState.venueId}
+                        onChange={handleInputChange}
                         placeholder="Enter venue ID"
                         className="bg-background/50 backdrop-blur-sm border-primary/20"
                       />
@@ -140,6 +203,9 @@ const Signin = () => {
                       <Label>Artist ID</Label>
                       <Input
                         type="text"
+                        name="artistId"
+                        value={formState.artistId}
+                        onChange={handleInputChange}
                         placeholder="Enter artist ID"
                         className="bg-background/50 backdrop-blur-sm border-primary/20"
                       />

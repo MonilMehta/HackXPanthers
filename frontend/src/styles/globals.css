@@ -49,7 +49,7 @@
   .spotlight-glow {
     @apply relative;
   }
-  
+
   .spotlight-glow::after {
     content: "";
     @apply absolute inset-0 bg-accent/5 hover:bg-accent/10 transition-colors duration-300 rounded-md;
