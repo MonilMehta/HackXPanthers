@@ -258,5 +258,16 @@ const updateAccountDetails = asyncHandler( async ( req, res ) => {
         )
     )
 })
+const getAllUsers = async (req, res, next) => {
+    try {
+        const users = await User.find().select("-password -refreshToken"); // Exclude sensitive fields
 
-export { registerUser , loginUser, logoutUser, refreshAccessToken, changeCurrentPassword, getCurrentUser, updateAccountDetails }
+        res.status(200).json(
+            new ApiResponse(200, users, "All users fetched successfully")
+        );
+    } catch (error) {
+        next(new ApiError(500, error.message));
+    }
+};
+
+export { getAllUsers, registerUser , loginUser, logoutUser, refreshAccessToken, changeCurrentPassword, getCurrentUser, updateAccountDetails }

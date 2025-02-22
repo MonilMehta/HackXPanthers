@@ -44,7 +44,9 @@ const eventSchema = new Schema(
             enum: ['draft', 'pending_approval', 'approved', 'rejected', 'cancelled', 'completed'],
             default: 'draft'
         },
-        rejectionReason: String,
+        rejectionReason: {
+            type: String,
+        },
         minAge: { 
             type: Number,
             default: 18 
@@ -66,7 +68,7 @@ const eventSchema = new Schema(
             default: false
         },
         approvedBy: {
-            type: mongoose.Schema.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref: "Admin", // Assuming admin is also stored in the User model
         },
         approvalDate: Date,
