@@ -32,7 +32,7 @@ import { getArtist } from "@/api/artist.api";
 import axios from "axios";
 import { followArtist, unfollowArtist } from "@/api/follower.api";
 import { getFollowings } from "@/api/follower.api";
-import { toast } from "sonner"; // Add this import
+import { toast } from "sonner";
 
 const SearchArtist = () => {
   const [artists, setArtists] = useState([]);
@@ -47,11 +47,10 @@ const SearchArtist = () => {
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [filteredArtists, setFilteredArtists] = useState([]);
+  const [followingArtists, setFollowingArtists] = useState([]);
   const itemsPerPage = 6;
 
   const debouncedSearch = useDebounce(searchQuery, 500);
-
-  const [followingArtists, setFollowingArtists] = useState([]);
 
   const fetchFollowingArtists = async () => {
     try {
@@ -62,17 +61,14 @@ const SearchArtist = () => {
         },
       });
 
-      console.log("Following Artists Response:", response.data);
-
-      // Store following artists IDs
       if (response.data.success && response.data.data.artist) {
         const followedArtists = response.data.data.artist;
-        // Just store the IDs for easier comparison
         const followedIds = followedArtists.map((artist) => artist._id);
         setFollowingArtists(followedIds);
       }
     } catch (error) {
       console.error("Error fetching following artists:", error);
+      toast.error("Failed to fetch following artists");
     }
   };
 
@@ -85,36 +81,23 @@ const SearchArtist = () => {
         },
       });
 
-      console.log("All Artists Response:", response.data);
-
       if (response.data.success) {
-        // Transform and mark followed artists
-        const transformedArtists = response.data.data.map((artist) => {
-          const isBeingFollowed = followingArtists.includes(artist._id);
+        const transformedArtists = response.data.data.map((artist) => ({
+          _id: artist._id,
+          name: artist.fullName,
+          stageName: artist.stageName,
+          image: artist.profile_image,
+          genre: artist.genre,
+          bio: artist.bio,
+          location: `${artist.address?.city || ""}, ${artist.address?.state || ""}`,
+          specialization: artist.genre || [],
+          experience: `${artist.yearsExperience || 0} years`,
+          isVerified: artist.isVerified,
+          followersCount: artist.followersCount,
+          socialMedia: artist.socialMedia,
+          isFollowing: followingArtists.includes(artist._id)
+        }));
 
-          return {
-            _id: artist._id,
-            name: artist.fullName,
-            stageName: artist.stageName,
-            image: artist.profile_image,
-            genre: artist.genre,
-            bio: artist.bio,
-            location: `${artist.address?.city || ""}, ${
-              artist.address?.state || ""
-            }`,
-            specialization: artist.genre || [],
-            experience: `${artist.yearsExperience || 0} years`,
-            isVerified: artist.isVerified,
-            followersCount: artist.followersCount,
-            socialMedia: artist.socialMedia,
-            isFollowing: isBeingFollowed,
-          };
-        });
-
-        console.log(
-          "Transformed Artists with Following Status:",
-          transformedArtists
-        );
         setArtists(transformedArtists);
         setFilteredArtists(transformedArtists);
       }
@@ -126,15 +109,25 @@ const SearchArtist = () => {
     }
   };
 
-  // Initialize data - First get following list, then get all artists
   useEffect(() => {
     const initializeData = async () => {
       setIsLoading(true);
-      await fetchFollowingArtists(); // Get following list first
-      await fetchArtists(); // Then get all artists and mark followed ones
+      await fetchFollowingArtists();
+      await fetchArtists();
     };
     initializeData();
   }, []);
+
+  useEffect(() => {
+    if (followingArtists.length > 0) {
+      const updatedArtists = artists.map(artist => ({
+        ...artist,
+        isFollowing: followingArtists.includes(artist._id)
+      }));
+      setArtists(updatedArtists);
+      setFilteredArtists(filterArtists(updatedArtists));
+    }
+  }, [followingArtists]);
 
   useEffect(() => {
     if (artists.length > 0) {
@@ -143,16 +136,14 @@ const SearchArtist = () => {
     }
   }, [debouncedSearch, filters, artists]);
 
-  const filterArtists = () => {
-    let result = [...artists];
+  const filterArtists = (artistList = artists) => {
+    let result = [...artistList];
 
     if (debouncedSearch) {
       result = result.filter(
         (artist) =>
           artist.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-          artist.location
-            .toLowerCase()
-            .includes(debouncedSearch.toLowerCase()) ||
+          artist.location.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
           artist.specialization.some((tag) =>
             tag.toLowerCase().includes(debouncedSearch.toLowerCase())
           )
@@ -212,21 +203,21 @@ const SearchArtist = () => {
       );
 
       if (response.data.success) {
-        setFollowingArtists((prev) =>
+        setFollowingArtists(prev =>
           isCurrentlyFollowing
-            ? prev.filter((id) => id !== artistId)
+            ? prev.filter(id => id !== artistId)
             : [...prev, artistId]
         );
 
-        const updateArtists = (prevArtists) =>
-          prevArtists.map((artist) =>
+        const updateArtists = prevArtists =>
+          prevArtists.map(artist =>
             artist._id === artistId
               ? { ...artist, isFollowing: !isCurrentlyFollowing }
               : artist
           );
 
-        setArtists(updateArtists);
-        setFilteredArtists(updateArtists);
+        setArtists(prev => updateArtists(prev));
+        setFilteredArtists(prev => updateArtists(prev));
 
         toast.success(
           isCurrentlyFollowing
@@ -242,16 +233,16 @@ const SearchArtist = () => {
     }
   };
 
+  const handleFilterChange = (key, value) => {
+    setCurrentPage(1);
+    setFilters((prev) => ({ ...prev, [key]: value }));
+  };
+
   const totalPages = Math.ceil(filteredArtists.length / itemsPerPage);
   const currentArtists = filteredArtists.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
-
-  const handleFilterChange = (key, value) => {
-    setCurrentPage(1);
-    setFilters((prev) => ({ ...prev, [key]: value }));
-  };
 
   return (
     <div className="min-h-screen">
@@ -452,10 +443,32 @@ const ArtistCard = ({ artist, onFollow }) => {
                 <a
                   href={artist.socialMedia.twitter}
                   target="_blank"
+                  rel="noopener noreferer"
+                  >
+                  <Button variant="ghost" size="sm">
+                    <Twitter className="h-4 w-4" />
+                  </Button>
+                </a>
+              )}
+              {artist.socialMedia?.youtube && (
+                <a
+                  href={artist.socialMedia.youtube}
+                  target="_blank"
                   rel="noopener noreferrer"
                 >
                   <Button variant="ghost" size="sm">
-                    <Twitter className="h-4 w-4" />
+                    <Youtube className="h-4 w-4" />
+                  </Button>
+                </a>
+              )}
+              {artist.socialMedia?.facebook && (
+                <a
+                  href={artist.socialMedia.facebook}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Button variant="ghost" size="sm">
+                    <Facebook className="h-4 w-4" />
                   </Button>
                 </a>
               )}

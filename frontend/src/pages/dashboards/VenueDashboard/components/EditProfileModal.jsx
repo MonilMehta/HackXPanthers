@@ -11,7 +11,6 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Check, Upload } from "lucide-react";
 import AWSHelper from '@/utils/awsHelper';
 
-<<<<<<< Updated upstream
 const EditProfileModal = ({ isOpen, onClose, managerData, onUpdate, imagePreview, onImageUpload }) => {
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
@@ -25,16 +24,6 @@ const EditProfileModal = ({ isOpen, onClose, managerData, onUpdate, imagePreview
     }
   };
 
-=======
-const EditProfileModal = ({
-  isOpen,
-  onClose,
-  managerData,
-  onUpdate,
-  imagePreview,
-  onImageUpload,
-}) => {
->>>>>>> Stashed changes
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-lg">
@@ -44,18 +33,8 @@ const EditProfileModal = ({
         <div className="space-y-4 pt-4">
           <div className="flex flex-col items-center gap-4">
             <Avatar className="h-24 w-24 cursor-pointer relative group">
-<<<<<<< Updated upstream
               <AvatarImage src={managerData.profileImage} />
               <AvatarFallback>{managerData.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-=======
-              <AvatarImage src={imagePreview} />
-              <AvatarFallback>
-                {managerData.name
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")}
-              </AvatarFallback>
->>>>>>> Stashed changes
               <input
                 type="file"
                 className="hidden"
