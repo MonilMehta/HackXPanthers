@@ -25,7 +25,6 @@ const registerVenueManager = asyncHandler(async (req, res) => {
     fullName,
     phone_no,
     age,
-    date_of_birth,
     address,
     profile_image,
     password,
@@ -37,7 +36,6 @@ const registerVenueManager = asyncHandler(async (req, res) => {
       email,
       fullName,
       phone_no,
-      date_of_birth,
       profile_image,
       password,
     ].some((field) => field?.trim() === "")
@@ -61,7 +59,6 @@ const registerVenueManager = asyncHandler(async (req, res) => {
     fullName,
     phone_no,
     age,
-    date_of_birth,
     address,
     profile_image,
     password,

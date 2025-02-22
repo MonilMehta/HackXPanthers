@@ -20,6 +20,10 @@ import {
 } from "@/components/ui/card";
 import AuthLayout from "../AuthLayout";
 import PageTransition from "@/components/PageTransition";
+import axios from "axios";
+import { loginArtist } from "@/api/artist.api";
+import { loginVenueManager } from "@/api/venueManager.api";
+import { loginAdmin } from "@/api/admin.api";
 
 function StaffSignin() {
   const navigate = useNavigate();
@@ -30,32 +34,45 @@ function StaffSignin() {
   });
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.userType || !formData.email || !formData.password) return;
 
     setIsLoading(true);
 
-    // Store role in localStorage with userRole key
     const roleMap = {
       venue: "VENUE",
       artist: "ARTIST",
       administrator: "ADMIN",
     };
 
-    localStorage.setItem("userRole", roleMap[formData.userType]); // Using userRole consistently
-
-    // Navigate based on role
-    const routeMap = {
-      venue: "/venue",
-      artist: "/artist",
-      administrator: "/admin",
+    const apiMap = {
+      venue: loginVenueManager,
+      artist: loginArtist,
+      administrator: loginAdmin,
     };
 
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      const response = await axios.post(apiMap[formData.userType], {
+        email: formData.email,
+        password: formData.password,
+      });
+      const { accessToken } = response.data.data;
+      localStorage.setItem("accessToken", accessToken);
+      localStorage.setItem("userRole", roleMap[formData.userType]);
+
+      const routeMap = {
+        venue: "/venue",
+        artist: "/artist",
+        administrator: "/admin",
+      };
+
       navigate(routeMap[formData.userType]);
-    }, 1500);
+    } catch (error) {
+      console.error("Error logging in:", error.response?.data || error.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

@@ -38,6 +38,6 @@ app.use("/api/followers", followersRouter)
 app.use("/api/venues", venueRouter)
 app.use("/api/events", eventRouter)
 app.use("/api/venuemanagers", venueManagerRouter)
-app.use("/api/admin", adminRouter)
+app.use("/api/admins", adminRouter)
 
 export { app }

@@ -23,6 +23,9 @@ import AuthLayout from "../AuthLayout";
 import { Label } from "@/components/ui/label";
 import { Camera, Instagram, Twitter, Facebook } from "lucide-react";
 import PageTransition from "@/components/PageTransition";
+import axios from "axios";
+import { registerArtist } from "@/api/artist.api";
+import { registerVenueManager } from "@/api/venueManager.api";
 
 const SocialMediaInput = ({ icon: Icon, id, placeholder, value, onChange }) => (
   <div className="flex items-center gap-2 p-3 rounded-lg border bg-background focus-within:ring-1 focus-within:ring-primary">
@@ -84,7 +87,7 @@ const StaffSignup = () => {
     username: "",
     email: "",
     fullName: "",
-    phoneNo: "",
+    phone_no: "",
     age: "",
     gender: "",
     address: "",
@@ -215,8 +218,8 @@ const StaffSignup = () => {
         <div className="space-y-2">
           <Label>Phone Number</Label>
           <Input
-            name="phoneNo"
-            value={formData.phoneNo}
+            name="phone_no"
+            value={formData.phone_no}
             onChange={handleInputChange}
             className="bg-background"
             required
@@ -403,11 +406,30 @@ const StaffSignup = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    // API call simulation
-    setTimeout(() => {
-      setIsLoading(false);
+
+    const dataToSend = {
+      ...formData,
+      address: formData.address,
+      socialMedia: formData.socialMedia,
+      profile_image: formData.profileImage
+        ? URL.createObjectURL(formData.profileImage)
+        : "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxw0eitGgbS6Y3kJODK5lGbWxUV8sONkQUZg&s",
+    };
+
+    try {
+      if (formData.userType === "artist") {
+        await axios.post(registerArtist, dataToSend);
+      } else if (formData.userType === "venue") {
+        await axios.post(registerVenueManager, dataToSend);
+      }
       // Handle success
-    }, 1500);
+      console.log("Staff registered successfully");
+    } catch (error) {
+      // Handle error
+      console.error("Error registering staff:", error.response?.data || error.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
