@@ -34,6 +34,7 @@ import ticket_bookRouter from './routes/ticket_book.routes.js';
 import reviewRouter from './routes/review.routes.js';
 import whistlistRouter from './routes/whistlist.routes.js';
 import postRouter from './routes/post.routes.js';
+import analyticRouter from './routes/analytic.routes.js';
 
 // declare routes
 app.use("/api/users", userRouter)
@@ -47,5 +48,6 @@ app.use("/api/ticket_book", ticket_bookRouter)
 app.use("/api/reviews", reviewRouter)
 app.use("/api/whistlist", whistlistRouter)
 app.use("/api/posts", postRouter)
+app.use("/api/analytics", analyticRouter)
 
 export { app }
