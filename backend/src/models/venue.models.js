@@ -2,47 +2,60 @@ import mongoose, { Schema } from "mongoose";
 
 const seatSchema = new Schema(
     {
-        seatNumber: {
+        name: {
             type: String, 
+            required: true,
+        },
+        priority: {
+            type: Number, 
             required: true 
         },
-        row: {
-            type: String, 
+        rows: { 
+            type: Number, 
             required: true 
-        },
+        }, 
         column: { 
             type: Number, 
             required: true 
         }, 
-        seatType: { 
-            type: String, 
-            enum: ["VIP", "Standard", "Balcony"], 
-            required: true 
-        },
-        price: { 
-            type: Number, 
-            required: true 
-        }, 
-        isBooked: { 
-            type: Boolean, 
-            default: false 
-        }, 
-        bookedBy: { 
-            type: mongoose.Schema.Types.ObjectId, 
-            ref: "User", default: null 
-        },
-        status: { 
-            type: String, 
-            enum: ["available", "pending", "booked"], 
-            default: "available" 
-        },
+        seats: [
+            {
+                seatNumber: { 
+                    type: String, 
+                    required: true 
+                },
+                row: { 
+                    type: String, 
+                    required: true 
+                }, 
+                column: { 
+                    type: Number, 
+                    required: true 
+                }, 
+                isBooked: { 
+                    type: Boolean, 
+                    default: false 
+                }, 
+                bookedBy: { 
+                    type: Schema.Types.ObjectId, 
+                    ref: "User", 
+                    default: null 
+                }, 
+                status: { 
+                    type: String, 
+                    enum: ["available", "pending", "booked"], 
+                    default: "available" 
+                } 
+            }
+        ]
+    
     }
 );
 
 const venueSchema = new Schema(
     {
         managerId: { 
-            type: mongoose.Schema.Types.ObjectId, 
+            type: Schema.Types.ObjectId, 
             ref: "VenueManager",
             required: true
         },
