@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -15,7 +14,7 @@ import AuthLayout from "../AuthLayout";
 import { Label } from "@/components/ui/label";
 import PageTransition from "@/components/PageTransition";
 
-function Signin() {
+const StaffSignin = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: "",
@@ -29,18 +28,20 @@ function Signin() {
     // Simulate API call
     setTimeout(() => {
       setIsLoading(false);
-      navigate("/customer");
+      navigate('/admin'); // You can change this based on role
     }, 1500);
   };
 
   return (
     <AuthLayout>
       <PageTransition>
-        <Card className="auth-card max-w-md w-full">
+        <Card className="auth-card">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl text-center">Welcome back</CardTitle>
+            <CardTitle className="text-2xl text-center">
+              Staff Sign In
+            </CardTitle>
             <CardDescription className="text-center">
-              Sign in to continue
+              Sign in to your staff account
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -50,10 +51,8 @@ function Signin() {
                 <Input
                   type="email"
                   value={formData.email}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, email: e.target.value }))
-                  }
-                  placeholder="Enter your email"
+                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                  placeholder="you@example.com"
                   required
                   className="bg-background border"
                 />
@@ -64,12 +63,7 @@ function Signin() {
                 <Input
                   type="password"
                   value={formData.password}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      password: e.target.value,
-                    }))
-                  }
+                  onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
                   placeholder="••••••••"
                   required
                   className="bg-background border"
@@ -83,8 +77,8 @@ function Signin() {
           </CardContent>
           <CardFooter>
             <p className="text-center text-sm text-muted-foreground w-full">
-              New to our platform?{" "}
-              <Link to="/signup" className="text-primary hover:underline">
+              Need a staff account?{" "}
+              <Link to="/staffsignup" className="text-primary hover:underline">
                 Create an account
               </Link>
             </p>
@@ -93,6 +87,7 @@ function Signin() {
       </PageTransition>
     </AuthLayout>
   );
-}
+};
 
-export default Signin;
+export default StaffSignin;
+

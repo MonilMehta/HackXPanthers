@@ -55,12 +55,6 @@ const venueManagerSchema = new Schema(
                 type: String,
             },
         ],
-        Reviews:[
-            {
-                type: Schema.Types.ObjectId,
-                ref: "Review",
-            }
-        ],
         isVerified:{
             type: Boolean,
             default: false,
