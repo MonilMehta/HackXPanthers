@@ -37,7 +37,7 @@ function App() {
     <ThemeProvider>
       <BrowserRouter>
         <div>
-          <Toaster />
+          <Toaster richColors position="top-center" />
           <AnimatedRoutes />
         </div>
       </BrowserRouter>

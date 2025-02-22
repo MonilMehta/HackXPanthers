@@ -18,6 +18,7 @@ import {
   Facebook,
   Edit,
 } from "lucide-react";
+import { toast } from "sonner"
 
 const EditProfileModal = ({ user, onSave }) => {
   const [open, setOpen] = useState(false);

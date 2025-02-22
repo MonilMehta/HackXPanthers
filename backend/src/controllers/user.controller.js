@@ -221,43 +221,46 @@ const getCurrentUser = asyncHandler(async ( req, res ) => {
     )
 })
 
-const updateAccountDetails = asyncHandler( async ( req, res ) => {
+const updateAccountDetails = asyncHandler(async (req, res) => {
+    try {
+        const { fullName, email, phone_no, gender, profile_image, address } = req.body;
+        
+        if (!(fullName || email || phone_no || profile_image || address)) {
+            throw new ApiError(400, "At least one field is required");
+        }
 
-    const { fullName, email, phone_no, gender, profile_image, address } = req.body;
-    
-    if (!(fullName || email || phone_no || profile_image || address)) {
-        throw new ApiError(400, "At least one field is required");
+        // Check if user exists
+        if (!req.user?._id) {
+            throw new ApiError(401, "Unauthorized request");
+        }
+
+        const updateFields = {};
+        if (fullName) updateFields.fullName = fullName;
+        if (email) updateFields.email = email;
+        if (phone_no) updateFields.phone_no = phone_no;
+        if (profile_image) updateFields.profile_image = profile_image;
+        if (address) updateFields.address = address;
+        if (gender) updateFields.gender = gender;
+
+        const user = await User.findByIdAndUpdate(
+            req.user._id,
+            { $set: updateFields },
+            { new: true }
+        ).select("-password -refreshToken");
+
+        if (!user) {
+            throw new ApiError(404, "User not found");
+        }
+
+        return res.status(200).json(
+            new ApiResponse(200, user, "Account details updated successfully")
+        );
+    } catch (error) {
+        console.error("Update error:", error);
+        throw new ApiError(error.statusCode || 500, error.message || "Error updating details");
     }
+});
 
-    const updateFields = {};
-    if (fullName) updateFields.fullName = fullName;
-    if (email) updateFields.email = email;
-    if (phone_no) updateFields.phone_no = phone_no;
-    if (profile_image) updateFields.profile_image = profile_image;
-    if (address) updateFields.address = address;
-    if (gender) updateFields.gender = gender;
-
-    const user = await User.findByIdAndUpdate(
-        req.user?._id,
-        { $set: updateFields },
-        { new: true }
-    ).select("-password -refreshToken");
-
-
-    if(!user){
-        throw new ApiError(404, "Error updating details")
-    }
-
-    return res
-    .status(200)
-    .json(
-        new ApiResponse(
-            200,
-            user,
-            "Account details updated successfully"
-        )
-    )
-})
 const getAllUsers = async (req, res, next) => {
     try {
         const users = await User.find().select("-password -refreshToken"); // Exclude sensitive fields

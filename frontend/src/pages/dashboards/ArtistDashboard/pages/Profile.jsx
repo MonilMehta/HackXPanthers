@@ -21,6 +21,7 @@ import {
 import Posts from "./Posts";
 import EditProfileModal from "./modals/EditProfileModal";
 import AWSHelper from '@/utils/awsHelper';
+import { toast } from "sonner"
 
 const Profile = () => {
   const [profileData, setProfileData] = useState({

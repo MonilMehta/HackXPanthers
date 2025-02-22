@@ -1,4 +1,7 @@
-import React, { useState } from "react";
+"use client"
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -8,12 +11,20 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import AWSHelper from "@/utils/awsHelper";
 
-const EditProfileModal = ({ isOpen, onClose, userData, onUpdate }) => {
+const EditProfileModal = ({ isOpen, onClose, userData, onUpdateSuccess }) => {
   const [formData, setFormData] = useState({
     fullName: userData?.fullName || "",
+    email: userData?.email || "",
     phone_no: userData?.phone_no || "",
-    age: userData?.age || "",
     gender: userData?.gender || "",
     address: {
       street: userData?.address?.street || "",
@@ -21,16 +32,30 @@ const EditProfileModal = ({ isOpen, onClose, userData, onUpdate }) => {
       state: userData?.address?.state || "",
       pincode: userData?.address?.pincode || "",
     },
+    profile_image: userData?.profile_image || "",
   });
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onUpdate(formData);
-  };
+  // Update formData when userData changes
+  useEffect(() => {
+    setFormData({
+      fullName: userData?.fullName || "",
+      email: userData?.email || "",
+      phone_no: userData?.phone_no || "",
+      gender: userData?.gender || "",
+      address: {
+        street: userData?.address?.street || "",
+        city: userData?.address?.city || "",
+        state: userData?.address?.state || "",
+        pincode: userData?.address?.pincode || "",
+      },
+      profile_image: userData?.profile_image || "",
+    });
+  }, [userData]);
 
-  const handleChange = (e) => {
+  const handleInputChange = (e) => {
     const { name, value } = e.target;
-    if (name.includes("address.")) {
+    if (name.startsWith("address.")) {
       const addressField = name.split(".")[1];
       setFormData((prev) => ({
         ...prev,
@@ -47,86 +72,175 @@ const EditProfileModal = ({ isOpen, onClose, userData, onUpdate }) => {
     }
   };
 
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      try {
+        setIsLoading(true);
+        const url = await AWSHelper.upload(file, userData.username);
+        // Update both local form data and parent component
+        setFormData(prev => ({ ...prev, profile_image: url }));
+        // Don't close the modal after image upload
+        toast.success("Image uploaded successfully");
+      } catch (error) {
+        console.error("Image upload error:", error);
+        toast.error("Failed to upload image");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    try {
+      const accessToken = localStorage.getItem("accessToken");
+      if (!accessToken) {
+        toast.error("Please login to continue");
+        onClose();
+        return;
+      }
+
+      console.log("Sending update data:", formData);
+
+      const response = await axios.patch(
+        "http://localhost:8000/api/users/update-details",
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log("Update response:", response.data);
+
+      if (response.data.success) {
+        toast.success("Profile updated successfully!");
+        if (onUpdateSuccess) {
+          await onUpdateSuccess(response.data.data);
+        }
+        onClose();
+      } else {
+        throw new Error(response.data.message || "Failed to update profile");
+      }
+    } catch (error) {
+      console.error("Update error:", error);
+      toast.error(error.response?.data?.message || "Error updating profile");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!isLoading) onClose();
+      }}
+    >
+      <DialogContent className="max-w-md mx-auto" aria-label="Edit profile form">
         <DialogHeader>
           <DialogTitle>Edit Profile</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label>Full Name</Label>
+          {/* Image upload uses handleImageUpload */}
+          <div>
+            <Label htmlFor="profile_image">Profile Image</Label>
             <Input
+              id="profile_image"
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="mt-1"
+            />
+          </div>
+          {/* Other fields */}
+          <div>
+            <Label htmlFor="fullName">Full Name</Label>
+            <Input
+              id="fullName"
               name="fullName"
               value={formData.fullName}
-              onChange={handleChange}
+              onChange={handleInputChange}
+              required
             />
           </div>
-
-          <div className="space-y-2">
-            <Label>Phone Number</Label>
+          <div>
+            <Label htmlFor="email">Email</Label>
             <Input
+              id="email"
+              name="email"
+              type="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              required
+            />
+          </div>
+          <div>
+            <Label htmlFor="phone_no">Phone Number</Label>
+            <Input
+              id="phone_no"
               name="phone_no"
               value={formData.phone_no}
-              onChange={handleChange}
+              onChange={handleInputChange}
+              required
             />
           </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Age</Label>
-              <Input
-                name="age"
-                type="number"
-                value={formData.age}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Gender</Label>
-              <Input
-                name="gender"
-                value={formData.gender}
-                onChange={handleChange}
-              />
-            </div>
+          <div>
+            <Label htmlFor="gender">Gender</Label>
+            <Select
+              value={formData.gender}
+              onValueChange={(value) =>
+                handleInputChange({ target: { name: "gender", value } })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select gender" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="male">Male</SelectItem>
+                <SelectItem value="female">Female</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-
           <div className="space-y-2">
             <Label>Address</Label>
             <Input
               name="address.street"
               placeholder="Street"
               value={formData.address.street}
-              onChange={handleChange}
+              onChange={handleInputChange}
             />
-            <div className="grid grid-cols-2 gap-4">
-              <Input
-                name="address.city"
-                placeholder="City"
-                value={formData.address.city}
-                onChange={handleChange}
-              />
-              <Input
-                name="address.state"
-                placeholder="State"
-                value={formData.address.state}
-                onChange={handleChange}
-              />
-            </div>
+            <Input
+              name="address.city"
+              placeholder="City"
+              value={formData.address.city}
+              onChange={handleInputChange}
+            />
+            <Input
+              name="address.state"
+              placeholder="State"
+              value={formData.address.state}
+              onChange={handleInputChange}
+            />
             <Input
               name="address.pincode"
               placeholder="Pincode"
               value={formData.address.pincode}
-              onChange={handleChange}
+              onChange={handleInputChange}
             />
           </div>
-
-          <div className="flex justify-end gap-4">
+          <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit">Save Changes</Button>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? "Updating..." : "Save Changes"}
+            </Button>
           </div>
         </form>
       </DialogContent>

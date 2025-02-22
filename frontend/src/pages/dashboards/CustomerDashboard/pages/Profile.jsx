@@ -1,8 +1,10 @@
+"use client"
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { User, Mail, Phone, Edit, MapPin, Calendar, Users } from "lucide-react";
+import { User, Mail, Phone, Edit, MapPin, Calendar, Users, Music, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card"; // Add this import
+import { Badge } from "@/components/ui/badge";
 import EditProfileModal from "../components/EditProfileModal";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -15,6 +17,7 @@ const Profile = () => {
   const [userData, setUserData] = useState(null);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
   const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [followings, setFollowings] = useState([]);
   const [followingsLoading, setFollowingsLoading] = useState(true);
   const navigate = useNavigate();
@@ -116,10 +119,11 @@ const Profile = () => {
 
       if (response.data.success) {
         setUserData(response.data.data);
+        console.log("Updated Profile Data:", response.data.data);
         toast.success("Profile updated successfully!");
         setIsEditProfileOpen(false);
       } else {
-        throw new Error(response.data.message || "Failed to update profile");
+        toast.error(response.data.message || "Failed to update profile");
       }
     } catch (error) {
       console.error("Error updating profile:", error);
@@ -130,6 +134,12 @@ const Profile = () => {
         navigate("/signin");
       }
     }
+  };
+
+  const handleUpdateSuccess = async (updatedUserData) => {
+    console.log("Updating user data:", updatedUserData);
+    setUserData(updatedUserData);
+    await fetchUserData(); // Refresh data from server
   };
 
   // Loading state
@@ -241,17 +251,28 @@ const Profile = () => {
 
         {/* Following Artists Section */}
         <div className="space-y-4">
-          <h2 className="text-2xl font-bold flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            Following Artists ({followings?.length || 0})
-          </h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Following Artists
+              <Badge variant="secondary" className="ml-2">
+                {followings?.length || 0}
+              </Badge>
+            </h2>
+            <Button
+              variant="outline"
+              onClick={() => navigate("/customer/discover")}
+            >
+              Discover More Artists
+            </Button>
+          </div>
 
           {followingsLoading ? (
-            <div className="grid md:grid-cols-3 gap-4">
+            <div className="grid md:grid-cols-3 gap-6">
               {[1, 2, 3].map((i) => (
                 <Card key={i} className="p-4">
                   <div className="flex items-center gap-4">
-                    <Skeleton className="h-16 w-16 rounded-full" />
+                    <Skeleton className="h-20 w-20 rounded-full" />
                     <div className="space-y-2">
                       <Skeleton className="h-4 w-32" />
                       <Skeleton className="h-4 w-24" />
@@ -260,56 +281,84 @@ const Profile = () => {
                 </Card>
               ))}
             </div>
-          ) : followings && followings.length > 0 ? ( // Added null check here
-            <div className="grid md:grid-cols-3 gap-4">
+          ) : followings && followings.length > 0 ? (
+            <div className="grid md:grid-cols-3 gap-6">
               {followings.map((artist) => (
                 <Card
                   key={artist._id}
-                  className="p-4 hover:shadow-lg transition-all"
+                  className="p-6 hover:shadow-xl transition-all duration-300 group"
                 >
-                  <div className="flex items-center gap-4">
-                    <img
-                      src={artist.profile_image || "/default-avatar.png"}
-                      alt={artist.fullName}
-                      className="h-16 w-16 rounded-full object-cover"
-                      onError={(e) => {
-                        e.target.src = "/default-avatar.png";
-                        e.target.onerror = null;
-                      }}
-                    />
-                    <div>
-                      <h3 className="font-semibold">{artist.fullName}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        @{artist.username}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {artist.email}
-                      </p>
-                      <Button
-                        variant="link"
-                        className="p-0 h-auto text-primary mt-2"
-                        onClick={() => navigate(`/artist/${artist._id}`)}
-                      >
-                        View Profile
-                      </Button>
+                  <div className="flex flex-col items-center text-center space-y-4">
+                    <div className="relative">
+                      <img
+                        src={artist.profile_image || "/default-avatar.png"}
+                       
+                        className="h-24 w-24 rounded-full object-cover border-4 border-primary/10 group-hover:border-primary/30 transition-all"
+                        onError={(e) => {
+                          e.target.src = "/default-avatar.png";
+                          e.target.onerror = null;
+                        }}
+                      />
+                      {artist.isVerified && (
+                        <Badge 
+                          variant="secondary" 
+                          className="absolute -top-2 -right-2"
+                        >
+                          <Star className="h-3 w-3 mr-1 text-yellow-500" />
+                          Verified
+                        </Badge>
+                      )}
                     </div>
+                    
+                    <div className="space-y-2">
+                      <h3 className="font-bold text-lg">{artist.fullName}</h3>
+                      <p className="text-sm text-muted-foreground">@{artist.username}</p>
+                      
+                      <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
+                        <div className="flex items-center">
+                          <Users className="h-4 w-4 mr-1" />
+                          {artist.followersCount || 0}
+                        </div>
+                        {artist.genre && (
+                          <div className="flex items-center">
+                            <Music className="h-4 w-4 mr-1" />
+                            {artist.genre}
+                          </div>
+                        )}
+                      </div>
+
+                      {artist.bio && (
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {artist.bio}
+                        </p>
+                      )}
+                    </div>
+
+                    <Button
+                      className="w-full"
+                      onClick={() => navigate(`/artist/${artist._id}`)}
+                    >
+                      View Profile
+                    </Button>
                   </div>
                 </Card>
               ))}
             </div>
           ) : (
-            <Card className="p-6 text-center">
-              <h3 className="text-lg font-semibold">No Artists Found</h3>
-              <p className="text-muted-foreground">
-                You are not following any artists yet.
-              </p>
-              <Button
-                variant="link"
-                onClick={() => navigate("/customer/discover")}
-                className="mt-2"
-              >
-                Discover Artists
-              </Button>
+            <Card className="p-8 text-center">
+              <div className="flex flex-col items-center space-y-4">
+                <Users className="h-12 w-12 text-muted-foreground" />
+                <h3 className="text-xl font-semibold">No Artists Found</h3>
+                <p className="text-muted-foreground max-w-sm">
+                  You are not following any artists yet. Discover amazing artists and follow them to see their updates here.
+                </p>
+                <Button
+                  onClick={() => navigate("/customer/discover")}
+                  className="mt-4"
+                >
+                  Discover Artists
+                </Button>
+              </div>
             </Card>
           )}
         </div>
@@ -317,9 +366,12 @@ const Profile = () => {
 
       <EditProfileModal
         isOpen={isEditProfileOpen}
-        onClose={() => setIsEditProfileOpen(false)}
+        onClose={() => {
+          console.log("Modal closing from parent");
+          setIsEditProfileOpen(false);
+        }}
         userData={userData}
-        onUpdate={handleUpdateProfile}
+        onUpdateSuccess={handleUpdateSuccess}
       />
     </div>
   );
