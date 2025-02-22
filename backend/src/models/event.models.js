@@ -41,8 +41,8 @@ const eventSchema = new Schema(
         },
         status: { 
             type: String, 
-            enum: ['draft', 'pending_approval', 'approved', 'rejected', 'cancelled', 'completed'],
-            default: 'draft'
+            enum: ['pending_approval', 'approved_by_admin', 'negotiation_pending', 'approved', 'rejected', 'cancelled', 'completed'],
+            default: 'pending_approval'
         },
         rejectionReason: {
             type: String,
@@ -61,7 +61,9 @@ const eventSchema = new Schema(
         },
         proposedPrice: {
             type: Number,
-            required: true
+        },
+        percentageCommission: {
+            type: Number,
         },
         isApproved:{
             type: Boolean,
@@ -71,6 +73,14 @@ const eventSchema = new Schema(
             type: Schema.Types.ObjectId,
             ref: "Admin", // Assuming admin is also stored in the User model
         },
+        negotiationHistory: [
+            {
+                proposedBy: { type: String, enum: ["venueManager", "artist"], required: true },
+                proposedPrice: Number,
+                percentageCommission: Number,
+                date: { type: Date, default: Date.now }
+            }
+        ],
         approvalDate: Date,
         analytics: {
             totalTicketsSold: { 

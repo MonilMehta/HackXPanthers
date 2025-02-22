@@ -80,13 +80,8 @@ const venueSchema = new Schema(
         seatLayout: [seatSchema],
         amenities: [
             {
-                name: {
-                    type: String,
-                    required: true
-                },
-                icon: {
-                    type: String 
-                }
+                type: String,
+                required: true,
             }
         ],
         availabilitySchedule: {
