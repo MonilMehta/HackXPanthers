@@ -2,7 +2,7 @@ import mongoose, { Schema } from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-const userSchema = new Schema(
+const venueManagerSchema = new Schema(
     {
         username: {
             type: String,
@@ -34,6 +34,10 @@ const userSchema = new Schema(
             type: Number,
             required: true,
         },
+        date_of_birth:{
+            type: String,
+            required: true,
+        },
         address: {
             street: { type: String, trim: true },
             city: { type: String, trim: true },
@@ -51,6 +55,19 @@ const userSchema = new Schema(
                 type: String,
             },
         ],
+        Reviews:[
+            {
+                type: Schema.Types.ObjectId,
+                ref: "Review",
+            }
+        ],
+        isVerified:{
+            type: Boolean,
+            default: false,
+        },
+        verificationToken:{
+            type: String,
+        },
         password: {
             type: String,
             required: [true, "Password is required"],
@@ -62,18 +79,18 @@ const userSchema = new Schema(
     { timestamps: true }
 );
 
-userSchema.pre("save", async function (next) {
+venueManagerSchema.pre("save", async function (next) {
     if (!this.isModified("password")) return next();
 
     this.password = await bcrypt.hash(this.password, 10);
     next();
 });
 
-userSchema.methods.isPasswordCorrect = async function (password) {
+venueManagerSchema.methods.isPasswordCorrect = async function (password) {
     return await bcrypt.compare(password, this.password);
 };
 
-userSchema.methods.generateAccessToken = function () {
+venueManagerSchema.methods.generateAccessToken = function () {
     return jwt.sign(
         {
             _id: this._id,
@@ -88,7 +105,7 @@ userSchema.methods.generateAccessToken = function () {
     );
 };
 
-userSchema.methods.generateRefreshToken = function () {
+venueManagerSchema.methods.generateRefreshToken = function () {
     return jwt.sign(
         {
             _id: this._id,
@@ -100,4 +117,4 @@ userSchema.methods.generateRefreshToken = function () {
     );
 };
 
-export const User = mongoose.model("User", userSchema);
+export const VenueManager = mongoose.model("VenueManager", venueManagerSchema);
