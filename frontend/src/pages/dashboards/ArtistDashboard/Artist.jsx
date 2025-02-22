@@ -16,7 +16,7 @@ const Artist = () => {
         <Route path="/" element={<ArtistDashboard />} />
         <Route path="profile" element={<Profile />} />
         <Route path="venues" element={<Venue />} />
-        <Route path="addshow" element={<AddShow />} />
+        <Route path="addshow" element={<Proposal />} />
         <Route path="stats" element={<Stats />} />
         <Route path="addpost" element={<Addpost />} />
         <Route path="booking" element={<BookVenue />} />
