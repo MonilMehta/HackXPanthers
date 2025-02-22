@@ -8,12 +8,15 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { currentUser, updateDetails } from "@/api/user.api";
+import { getFollowings } from "@/api/follower.api";
 
 const Profile = () => {
   const [userData, setUserData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
   const [error, setError] = useState(null);
+  const [followings, setFollowings] = useState([]);
+  const [followingsLoading, setFollowingsLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -60,6 +63,37 @@ const Profile = () => {
       }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (userData?._id) {
+      fetchFollowings();
+    }
+  }, [userData]);
+
+  const fetchFollowings = async () => {
+    try {
+      const accessToken = localStorage.getItem("accessToken");
+      const response = await axios.get(getFollowings, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      });
+
+      console.log("Followings Response:", response.data);
+      if (response.data.success) {
+        // Set empty array if data is null
+        setFollowings(response.data.data || []);
+      }
+    } catch (error) {
+      console.error("Error fetching followings:", error);
+      toast.error("Failed to fetch following artists");
+      setFollowings([]); // Set empty array on error
+    } finally {
+      setFollowingsLoading(false);
     }
   };
 
@@ -138,7 +172,7 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-background p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="max-w-7xl mx-auto space-y-8">
         {/* Profile Header */}
         <div className="glass-card rounded-lg p-6">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -200,7 +234,73 @@ const Profile = () => {
           </div>
         </div>
 
-        {/* Additional sections like bookings history, etc. can be added here */}
+        {/* Following Artists Section */}
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            Following Artists
+          </h2>
+
+          {followingsLoading ? (
+            <div className="grid md:grid-cols-3 gap-4">
+              {[1, 2, 3].map((i) => (
+                <Card key={i} className="p-4">
+                  <div className="flex items-center gap-4">
+                    <Skeleton className="h-16 w-16 rounded-full" />
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-4 w-24" />
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          ) : followings && followings.length > 0 ? ( // Added null check here
+            <div className="grid md:grid-cols-3 gap-4">
+              {followings.map((artist) => (
+                <Card
+                  key={artist._id}
+                  className="p-4 hover:shadow-lg transition-all"
+                >
+                  <div className="flex items-center gap-4">
+                    <img
+                      src={artist.profile_image || "/default-avatar.png"}
+                      alt={artist.fullName}
+                      className="h-16 w-16 rounded-full object-cover"
+                    />
+                    <div>
+                      <h3 className="font-semibold">{artist.fullName}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        @{artist.username}
+                      </p>
+                      <Button
+                        variant="link"
+                        className="p-0 h-auto text-primary"
+                        onClick={() => navigate(`/artist/${artist._id}`)}
+                      >
+                        View Profile
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Card className="p-6 text-center">
+              <h3 className="text-lg font-semibold">No Artists Found</h3>
+              <p className="text-muted-foreground">
+                You are not following any artists yet.
+              </p>
+              <Button
+                variant="link"
+                onClick={() => navigate("/customer/discover")}
+                className="mt-2"
+              >
+                Discover Artists
+              </Button>
+            </Card>
+          )}
+        </div>
       </div>
 
       <EditProfileModal
