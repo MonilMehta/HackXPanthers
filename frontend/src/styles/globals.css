@@ -6,10 +6,10 @@
   :root {
     /* Light mode colors */
     --background: #ffffff;
-    --foreground: #464545;
+    --foreground: #000000;
     --card: #f5f5f5;
     --primary: #ffd700;
-    --primary-foreground: #000000;
+    --primary-foreground: #978e8e;
     --secondary: #d3d3d3;
     --secondary-foreground: #666666;
     --accent: #ffd700;
@@ -22,9 +22,9 @@
   
   .dark {
     /* Dark mode colors */
-    --background: #444141;
-    --foreground: #ffffff;
-    --card: #0f0f0f;
+    --background: #292424;
+    --foreground: #c0bbbb;
+    --card: #333333;
     --primary: #fbe35d;
     --primary-foreground: #000000;
     --secondary: #d3d3d3;
@@ -34,7 +34,7 @@
     --accent-foreground: #000000;
     --muted: #666666;
     --muted-foreground: #aaaaaa;
-    --border: #0f0f0f;
+    --border: #292424;
     
     /* Additional colors for dark theme */
     --highlight: #f5e06d;

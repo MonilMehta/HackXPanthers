@@ -8,6 +8,7 @@ import Artist from "./pages/dashboards/ArtistDashboard/Artist";
 import Customer from "./pages/dashboards/CustomerDashboard/Customer";
 import VenueManager from "./pages/dashboards/VenueDashboard/VenueManager";
 import { AnimatePresence } from "framer-motion";
+import { Toaster } from "sonner";
 
 // Wrapper component that uses location
 function AnimatedRoutes() {
@@ -32,7 +33,10 @@ function App() {
   return (
     <ThemeProvider>
       <BrowserRouter>
-        <AnimatedRoutes />
+        <div>
+          <Toaster />
+          <AnimatedRoutes />
+        </div>
       </BrowserRouter>
     </ThemeProvider>
   );
