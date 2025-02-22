@@ -244,4 +244,55 @@ const getAvailableSeats = async (req, res) => {
     }
 };
 
-export { bookTickets, getAvailableSeats};
+const getUserTickets = async (req, res) => {
+    try {
+        const {userId} = req.body; // Assuming using auth middleware
+
+        if (!userId) {
+            return res.status(400).json({
+                success: false,
+                message: "User ID is required"
+            });
+        }
+
+        const tickets = await Ticket.find({ userId })
+            .select('seatNumber seatSetName') // Select only needed ticket fields
+            .populate({
+                path: 'eventId',
+                select: 'title', // Only event name
+            })
+            .populate({
+                path: 'venueId',
+                select: 'name address', // Only venue name and address
+            })
+            .lean(); // Convert to plain JavaScript object
+
+        const formattedResponse = {
+            success: true,
+            totalTickets: tickets.length,
+            tickets: tickets.map(ticket => ({
+                seatInfo: {
+                    seatNumber: ticket.seatNumber,
+                    section: ticket.seatSetName
+                },
+                eventName: ticket.eventId?.title,
+                venue: {
+                    name: ticket.venueId?.name,
+                    address: ticket.venueId?.address
+                }
+            }))
+        };
+
+        return res.status(200).json(formattedResponse);
+
+    } catch (error) {
+        console.error("Error fetching user tickets:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Error fetching user tickets",
+            error: error.message
+        });
+    }
+};
+
+export { bookTickets, getAvailableSeats, getUserTickets };

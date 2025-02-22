@@ -1,7 +1,9 @@
 import { Router } from "express";
-import { registerArtist, loginArtist, viewArtist, getOneArtist, getAllArtist} from "../controllers/artist.controller.js";
+import { registerArtist, loginArtist, viewArtist, getOneArtist, getAllArtist, updateArtistDetails} from "../controllers/artist.controller.js";
 
 const router = Router();
+
+router.route("/updateArtistDetails").post(updateArtistDetails);
 
 router.route("/registerArtist").post(registerArtist);
 

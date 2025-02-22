@@ -238,10 +238,10 @@ const getAllArtist = async (req, res) => {
         if (socialLinks.facebook) updateFields.socialLinks.facebook = socialLinks.facebook;
         if (socialLinks.youtube) updateFields.socialLinks.youtube = socialLinks.youtube;
     }
-
+    const {artistid} = req.body;
     // Update artist document
     const updatedArtist = await Artist.findByIdAndUpdate(
-        req.artist?._id, // Assuming you have artist middleware setting req.artist
+        artistid, // Assuming you have artist middleware setting req.artist
         { $set: updateFields },
         { new: true }
     ).select("-password -refreshToken");
