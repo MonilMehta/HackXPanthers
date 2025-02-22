@@ -38,7 +38,7 @@ const eventSchema = new Schema(
             required: true
         },
         eventDate: {
-            type: String, 
+            type: Date, 
             required: true
         },
         startTime: { 
@@ -67,8 +67,20 @@ const eventSchema = new Schema(
             promotionalVideoUrl: String,
             galleryImages: [String]
         },
+        proposedPrice: {
+            type: Number,
+            required: true
+        },
         approvalDate: Date,
         analytics: {
+            totalTicketsSold: { 
+                type: Number, 
+                default: 0 
+            },
+            revenueGenerated: { 
+                type: Number, 
+                default: 0 
+            },
             audienceDemographics: {
                 ageGroups: {
                     "18-24": Number,

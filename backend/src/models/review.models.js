@@ -15,6 +15,8 @@ const reviewSchema = new Schema(
         rating: {
             type: Number,
             default:0,
+            min: 0,
+            max: 5,
             required: true
         },
         review_desc: {
