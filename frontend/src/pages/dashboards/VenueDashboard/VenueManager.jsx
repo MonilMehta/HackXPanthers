@@ -1,8 +1,8 @@
 import React from "react";
 import Sidebar from "../components/Sidebar";
 import VenueDashboard from "./pages/VenueDashboard";
-import Manage from "./pages/Manage";
-import Proposal from "./pages/Proposal";
+import Manage from "./pages/ManageVenue";
+import Proposal from "./pages/AddVenue";
 import Analystics from "./pages/Analystics";
 import Profile from "./pages/Profile";
 import { Routes,Route } from "react-router-dom";

@@ -1,7 +1,7 @@
 import React from "react";
 import Sidebar from "../components/Sidebar";
 import CustomerDashboard from "./pages/CustomerDashboard";
-import Ticket from "./pages/Ticket";
+import Ticket from "./pages/ViewBookings";
 import Following from "./pages/Following";
 import Profile from "./pages/Profile";
 import { Route,Routes } from "react-router-dom";
