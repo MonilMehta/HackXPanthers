@@ -32,6 +32,7 @@ import venueManagerRouter from './routes/venueManager.routes.js';
 import adminRouter from './routes/admin.routes.js'; 
 import ticket_bookRouter from './routes/ticket_book.routes.js';
 import reviewRouter from './routes/review.routes.js';
+import whistlistRouter from './routes/whistlist.routes.js';
 
 // declare routes
 app.use("/api/users", userRouter)
@@ -43,5 +44,6 @@ app.use("/api/venuemanagers", venueManagerRouter)
 app.use("/api/admin", adminRouter)
 app.use("/api/ticket_book", ticket_bookRouter)
 app.use("/api/reviews", reviewRouter)
+app.use("/api/whistlist", whistlistRouter)
 
 export { app }

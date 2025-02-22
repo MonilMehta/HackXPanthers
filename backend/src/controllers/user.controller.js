@@ -270,4 +270,27 @@ const getAllUsers = async (req, res, next) => {
     }
 };
 
-export { getAllUsers, registerUser , loginUser, logoutUser, refreshAccessToken, changeCurrentPassword, getCurrentUser, updateAccountDetails }
+const getOneUser = async (req, res) => {
+  try {
+    const { userId } = req.body; // Get artist ID from request body
+
+    // Find the artist by ID and exclude sensitive fields
+    const userData = await User.findById(userId)
+      .select("-password -refreshToken -__v"); // Exclude sensitive fields
+
+    // If artist is not found
+    if (!userData) {
+      return res
+        .status(404)
+        .json({ success: false, message: "user not found" });
+    }
+
+
+    res.status(200).json({ success: true, data: userData });
+  } catch (error) {
+    console.error("Error fetching artist:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+export { getOneUser, getAllUsers, registerUser , loginUser, logoutUser, refreshAccessToken, changeCurrentPassword, getCurrentUser, updateAccountDetails }
