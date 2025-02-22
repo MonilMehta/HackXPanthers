@@ -44,6 +44,7 @@ const createEvent = async (req, res) => {
     }
 };
 
+
 const getEventDetails = async (req, res) => {
     try {
         const { id } = req.body;
@@ -98,4 +99,73 @@ const approveEvent = async (req, res) => {
     }
 };
 
-export { createEvent , getEventDetails, approveEvent };
+const filterEventsByType = async (req, res) => {
+    try {
+        const { eventType } = req.body;
+
+        if (!eventType) {
+            return res.status(400).json({ message: "eventType query parameter is required." });
+        }
+
+        const filteredEvents = await Event.find({ eventType });
+
+        if (filteredEvents.length === 0) {
+            return res.status(404).json({ message: "No events found for the specified eventType." });
+        }
+
+        res.status(200).json(filteredEvents);
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching events", error: error.message });
+    }
+};
+
+const getEventsByDate = async (req, res) => {
+    try {
+        const { date, status } = req.body;
+
+        // Check if date is provided
+        if (!date) {
+            return res.status(400).json({ message: "Date is required to fetch events." });
+        }
+
+        // Create date range for the entire day
+        const startOfDay = new Date(date);
+        startOfDay.setHours(0, 0, 0, 0);
+
+        const endOfDay = new Date(date);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        // Create the query object
+        const query = {
+            eventDate: { $gte: startOfDay, $lte: endOfDay },
+        };
+
+        // Add status to the query if provided
+        if (status) {
+            query.status = status;
+        }
+
+        // Fetch events based on the query
+        const events = await Event.find(query)
+            .populate({
+                path: "primaryArtistId",
+                select: "fullName"
+            })
+            .select(
+                "title description eventType eventDate startTime endTime minAge genres tags mediaAssets seatPricing status"
+            );
+
+        // If no events are found
+        if (!events || events.length === 0) {
+            return res.status(404).json({ message: "No events found for the given date." });
+        }
+
+        // Return the list of events
+        res.status(200).json(events);
+    } catch (error) {
+        console.error("Error fetching events by date:", error);
+        res.status(500).json({ message: "Failed to get events by date.", error: error.message });
+    }
+};
+
+export { createEvent , getEventDetails, approveEvent, getEventsByDate, filterEventsByType };

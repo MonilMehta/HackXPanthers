@@ -23,6 +23,45 @@ const generateSeats = (seatSet) => {
     return seats;
 };
 
+
+const getSimilarVenues = async (req, res) => {
+    try {
+        const { eventId } = req.body;
+        const event = await Event.findById(eventId);
+
+        if (!event) {
+            return res.status(404).json({ success: false, message: "Event not found." });
+        }
+
+        // Find venues that match the event type
+        const venues = await Venue.find({
+            venueTypes: { $in: [event.eventType] } // Match venues where venueTypes array contains the eventType
+        })
+        .populate("managerId", "name email")
+        .populate("Reviews");
+
+        if (!venues.length) {
+            return res.status(404).json({ 
+                success: false, 
+                message: "No venues found matching the event type." 
+            });
+        }
+
+        res.status(200).json({ 
+            success: true, 
+            venues: filteredVenues,
+            eventType: event.eventType // Include event type in response for reference
+        });
+
+    } catch (error) {
+        console.error("Error fetching similar venues:", error);
+        res.status(500).json({ 
+            success: false, 
+            message: "Server error while fetching similar venues." 
+        });
+    }
+};
+
 // Controller to register a venue
 const registerVenue = async (req, res) => {
     try {
@@ -156,4 +195,4 @@ const bookVenue = async (req, res) => {
 };
 
 
-export { registerVenue, getAllVenues, bookVenue };
+export { getSimilarVenues, registerVenue, getAllVenues, bookVenue };
