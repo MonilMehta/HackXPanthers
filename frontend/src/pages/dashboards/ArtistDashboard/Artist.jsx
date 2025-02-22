@@ -8,6 +8,8 @@ import Profile from "./pages/Profile";
 import ArtistDashboard from "./pages/ArtistDashboard";
 import Addpost from "./pages/Addpost";
 import BookVenue from "./pages/BookVenue";
+
+
 const Artist = () => {
   return (
     <div className="flex h-screen bg-background">
