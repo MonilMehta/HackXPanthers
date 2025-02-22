@@ -1,5 +1,5 @@
 // components/TestimonialCard.jsx
-import { motion } from 'framer-motion';
+import { motion } from "framer-motion";
 
 const TestimonialCard = ({ name, role, content, delay }) => (
   <motion.div
