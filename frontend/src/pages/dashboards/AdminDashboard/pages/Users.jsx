@@ -137,7 +137,7 @@ const Users = () => {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline">{user.role || "USER"}</Badge>
+                    <Badge variant="outline">{user.userType || "USER"}</Badge>
                   </TableCell>
                   <TableCell>
                     <Badge variant="success">active</Badge>

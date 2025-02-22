@@ -18,7 +18,7 @@ const UserProfile = () => {
 
   const fetchUserDetails = async () => {
     try {
-      const response = await axios.get(`http://localhost:8000/api/users/${userId}`);
+      const response = await axios.get(`http://localhost:8000/api/users/getUserDetails/${userId}`);
       setUser(response.data.data);
     } catch (error) {
       toast.error("Failed to fetch user details");
@@ -31,7 +31,7 @@ const UserProfile = () => {
   const handleDeleteUser = async () => {
     if (window.confirm("Are you sure you want to delete this user?")) {
       try {
-        await axios.delete(`http://localhost:8000/api/users/${userId}`);
+        // await axios.delete(`http://localhost:8000/api/users/${userId}`);
         toast.success("User deleted successfully");
         navigate("/admin/users");
       } catch (error) {
