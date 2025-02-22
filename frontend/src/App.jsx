@@ -9,7 +9,8 @@ import Customer from "./pages/dashboards/CustomerDashboard/Customer";
 import VenueManager from "./pages/dashboards/VenueDashboard/VenueManager";
 import { AnimatePresence } from "framer-motion";
 import { Toaster } from "sonner";
-
+import StaffSignin from "./pages/signup-in/signin/StaffSignin";
+import StaffSignup from "./pages/signup-in/signup/StaffSignup";
 // Wrapper component that uses location
 function AnimatedRoutes() {
   const location = useLocation();
@@ -24,6 +25,8 @@ function AnimatedRoutes() {
         <Route path="/venue/*" element={<VenueManager />} />
         <Route path="/artist/*" element={<Artist />} />
         <Route path="/customer/*" element={<Customer />} />
+        <Route path="/staffsignin" element={<StaffSignin />} />
+        <Route path="/staffsignup" element={<StaffSignup />} />
       </Routes>
     </AnimatePresence>
   );

@@ -167,10 +167,22 @@
 
 .select-content {
   background-color: hsl(var(--background)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  z-index: 50;
 }
 
 .select-item {
   background-color: transparent !important;
+  cursor: pointer !important;
+}
+
+.select-item:hover {
+  background-color: hsl(var(--muted)) !important;
+}
+
+.select-item[data-highlighted] {
+  background-color: hsl(var(--muted)) !important;
+  color: hsl(var(--foreground)) !important;
 }
 
 /* Add these styles for calendar and select components */
