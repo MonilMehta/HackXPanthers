@@ -156,3 +156,65 @@
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+/* Add these styles */
+.select-trigger,
+.input,
+.textarea {
+  background-color: hsl(var(--background)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+}
+
+.select-content {
+  background-color: hsl(var(--background)) !important;
+}
+
+.select-item {
+  background-color: transparent !important;
+}
+
+/* Add these styles for calendar and select components */
+.react-calendar {
+  background-color: hsl(var(--background)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: var(--radius);
+  padding: 0.5rem;
+}
+
+.select-content,
+.popover-content {
+  background-color: hsl(var(--background)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+}
+
+.select-item {
+  cursor: pointer;
+}
+
+.select-item[data-highlighted] {
+  background-color: hsl(var(--accent)) !important;
+  color: hsl(var(--accent-foreground)) !important;
+}
+
+/* Calendar styles */
+.rdp {
+  background-color: hsl(var(--background)) !important;
+}
+
+.rdp-day {
+  border-radius: var(--radius) !important;
+}
+
+.rdp-day:hover {
+  background-color: hsl(var(--accent)) !important;
+  color: hsl(var(--accent-foreground)) !important;
+}
+
+.rdp-day_selected {
+  background-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+}
+
+.select-item:hover {
+  background-color: hsl(var(--accent)) !important;
+}
