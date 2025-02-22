@@ -4,7 +4,8 @@ import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.models.js";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
-
+import { Artist } from "../models/artist.models.js";
+import { Followers } from "../models/follower.models.js";
 const generateAccessAndRefreshTokens = async(userId) => {
     try {
         const user = await User.findById(userId)
@@ -20,6 +21,31 @@ const generateAccessAndRefreshTokens = async(userId) => {
     }
 } 
 
+const getFollowedArtists = async (req, res) => {
+    try {
+      const { userId } = req.body; // Get user ID from URL parameters
+  
+      // Find the artists followed by the user
+      const followedData = await Followers.findOne({ user: userId }).populate({
+        path: "artist",
+        select: "username profile_image", // Select only fullname and profile_image
+      });
+  
+      // If no followed artists found
+      if (!followedData || followedData.artist.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: "No followed artists found for this user.",
+        });
+      }
+  
+      res.status(200).json({ success: true, data: followedData.artist });
+    } catch (error) {
+      console.error("Error fetching followed artists:", error);
+      res.status(500).json({ success: false, message: "Server error" });
+    }
+  };
+
 const registerUser = asyncHandler( async ( req, res ) => {
     
     // TODO: register a user
@@ -34,10 +60,10 @@ const registerUser = asyncHandler( async ( req, res ) => {
     // 8. check for user creation
     // 9. response
 
-    const { username, email, password, fullName } = req.body
+    const { username, email, fullName, phone_no, age, gender, address, profile_image, password} = req.body
 
     if(
-        [username, email, password, fullName].some((field) => field?.trim() === '')
+        [username, email, fullName, phone_no, age, gender, address, profile_image, password].some((field) => field?.trim() === '')
     ) {
         throw new ApiError(400, "All fields are required")
     }
@@ -71,12 +97,7 @@ const registerUser = asyncHandler( async ( req, res ) => {
     }
 
     const user = await User.create({
-        fullName,
-        avatar: avatar.url,
-        coverImage: coverImage?.url || "",
-        email,
-        username: username.toLowerCase(),
-        password
+        username, email, fullName, phone_no, age, gender, address, profile_image, password
     })
 
     const createdUser = await User.findById(user._id).select(
@@ -614,4 +635,4 @@ const getUserWatchHistory = asyncHandler( async ( req, res ) => {
     )
 })
 
-export { registerUser , loginUser, logoutUser, refreshAccessToken, changeCurrentPassword, getCurrentUser, updateAccountDetails, updateUserAvatar, updateUserCoverImage, getUserChannelProfile, getUserWatchHistory }
+export { getFollowedArtists, registerUser , loginUser, logoutUser, refreshAccessToken, changeCurrentPassword, getCurrentUser, updateAccountDetails, updateUserAvatar, updateUserCoverImage, getUserChannelProfile, getUserWatchHistory }

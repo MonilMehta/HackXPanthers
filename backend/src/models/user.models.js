@@ -34,6 +34,10 @@ const userSchema = new Schema(
             type: Number,
             required: true,
         },
+        gender:{
+            type: String,
+            required: true
+        },
         address: {
             street: { type: String, trim: true },
             city: { type: String, trim: true },
@@ -99,5 +103,6 @@ userSchema.methods.generateRefreshToken = function () {
         }
     );
 };
+
 
 export const User = mongoose.model("User", userSchema);
