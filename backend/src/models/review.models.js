@@ -5,7 +5,10 @@ const reviewSchema = new Schema(
         artistId: {
             type: Schema.Types.ObjectId,
             ref: 'Artist',
-            required: true
+        },
+        venueId: {
+            type: Schema.Types.ObjectId,
+            ref: 'Venue',
         },
         userId: {
             type: Schema.Types.ObjectId,

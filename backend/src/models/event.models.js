@@ -12,16 +12,6 @@ const eventSchema = new Schema(
             ref: "Artist",
             required: true
         },
-        supportingArtists: [
-            {
-                artistId: {
-                    type: Schema.Types.ObjectId, 
-                    ref: "Artist" 
-                },
-                role: String,
-                performanceOrder: Number
-            }
-        ],
         title: {
             type: String,
             required: true,
