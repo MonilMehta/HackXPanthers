@@ -47,8 +47,7 @@ const userSchema = new Schema(
             longitude: { type: String }
         },
         profile_image: {
-            type: String, //image url
-            required: true,
+            type: String,
         },
         searchHistory: [
             {
