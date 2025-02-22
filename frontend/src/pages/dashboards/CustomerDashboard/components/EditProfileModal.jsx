@@ -1,101 +1,135 @@
-import React, { useState } from 'react';
-import { Dialog } from '@headlessui/react';
-import { User, Upload, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import React, { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
-const EditProfileModal = ({ isOpen, onClose, userData, onUpdate, imagePreview, onImageUpload }) => {
-  const [formData, setFormData] = useState(userData);
+const EditProfileModal = ({ isOpen, onClose, userData, onUpdate }) => {
+  const [formData, setFormData] = useState({
+    fullName: userData?.fullName || "",
+    phone_no: userData?.phone_no || "",
+    age: userData?.age || "",
+    gender: userData?.gender || "",
+    address: {
+      street: userData?.address?.street || "",
+      city: userData?.address?.city || "",
+      state: userData?.address?.state || "",
+      pincode: userData?.address?.pincode || "",
+    },
+  });
 
   const handleSubmit = (e) => {
     e.preventDefault();
     onUpdate(formData);
-    onClose();
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    if (name.includes("address.")) {
+      const addressField = name.split(".")[1];
+      setFormData((prev) => ({
+        ...prev,
+        address: {
+          ...prev.address,
+          [addressField]: value,
+        },
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
 
   return (
-    <Dialog
-      open={isOpen}
-      onClose={onClose}
-      className="relative z-50"
-    >
-      <div className="fixed inset-0 bg-black/80" aria-hidden="true" />
-      
-      <div className="fixed inset-0 flex items-center justify-center p-4">
-        <Dialog.Panel className="mx-auto max-w-md w-full glass-card rounded-lg p-6">
-          <div className="flex items-center justify-between mb-6">
-            <Dialog.Title className="text-2xl font-bold text-foreground flex items-center gap-2">
-              <User className="h-6 w-6 text-primary" />
-              Edit Profile
-            </Dialog.Title>
-            <Button variant="ghost" size="icon" onClick={onClose}>
-              <X className="h-5 w-5" />
-            </Button>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Edit Profile</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label>Full Name</Label>
+            <Input
+              name="fullName"
+              value={formData.fullName}
+              onChange={handleChange}
+            />
           </div>
-          
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="flex justify-center">
-              <div className="relative group">
-                <img 
-                  src={imagePreview} 
-                  alt="Profile" 
-                  className="w-32 h-32 rounded-full object-cover border-4 border-primary/10"
-                />
-                <div className="absolute inset-0 bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <Upload className="h-6 w-6 text-white" />
-                </div>
-                <input 
-                  type="file" 
-                  onChange={onImageUpload}
-                  className="absolute inset-0 opacity-0 cursor-pointer"
-                  accept="image/*"
-                />
-              </div>
+
+          <div className="space-y-2">
+            <Label>Phone Number</Label>
+            <Input
+              name="phone_no"
+              value={formData.phone_no}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Age</Label>
+              <Input
+                name="age"
+                type="number"
+                value={formData.age}
+                onChange={handleChange}
+              />
             </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-foreground">Name</label>
-                <Input
-                  value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  className="mt-1"
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-foreground">Phone</label>
-                <Input
-                  type="tel"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                  className="mt-1"
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-foreground">Bio</label>
-                <Textarea
-                  value={formData.bio}
-                  onChange={(e) => setFormData({...formData, bio: e.target.value})}
-                  className="mt-1"
-                  rows={3}
-                />
-              </div>
+            <div className="space-y-2">
+              <Label>Gender</Label>
+              <Input
+                name="gender"
+                value={formData.gender}
+                onChange={handleChange}
+              />
             </div>
+          </div>
 
-            <div className="flex justify-end gap-3">
-              <Button variant="outline" onClick={onClose}>
-                Cancel
-              </Button>
-              <Button type="submit" className="bg-primary hover:bg-primary/90">
-                Save Changes
-              </Button>
+          <div className="space-y-2">
+            <Label>Address</Label>
+            <Input
+              name="address.street"
+              placeholder="Street"
+              value={formData.address.street}
+              onChange={handleChange}
+            />
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                name="address.city"
+                placeholder="City"
+                value={formData.address.city}
+                onChange={handleChange}
+              />
+              <Input
+                name="address.state"
+                placeholder="State"
+                value={formData.address.state}
+                onChange={handleChange}
+              />
             </div>
-          </form>
-        </Dialog.Panel>
-      </div>
+            <Input
+              name="address.pincode"
+              placeholder="Pincode"
+              value={formData.address.pincode}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="flex justify-end gap-4">
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button type="submit">Save Changes</Button>
+          </div>
+        </form>
+      </DialogContent>
     </Dialog>
   );
 };
