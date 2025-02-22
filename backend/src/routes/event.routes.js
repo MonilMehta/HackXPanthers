@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createEvent, getEventDetails, approveEventByAdmin, approveEventByVenueManager, rejectEvent, getEventsByDate, filterEventsByType, getPendingEventsAdmin, getPendingEventsVenueManager, getEventById, proposeNegotiation, respondToNegotiation } from "../controllers/event.controller.js";
+import { getAllEvents, createEvent, getEventDetails, approveEventByAdmin, approveEventByVenueManager, rejectEvent, getEventsByDate, filterEventsByType, getPendingEventsAdmin, getPendingEventsVenueManager, getEventById, proposeNegotiation, respondToNegotiation } from "../controllers/event.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const router = Router();
@@ -16,5 +16,6 @@ router.route("/getPendingEventsVenueManager").get(verifyJWT, getPendingEventsVen
 router.route("/getEventById/:eventId").get(verifyJWT, getEventById);
 router.route("/proposeNegotiation").post(verifyJWT, proposeNegotiation);
 router.route("/respondToNegotiation").post(verifyJWT, respondToNegotiation);
+router.route("/getAllEvents").get(getAllEvents);
 
 export default router;
