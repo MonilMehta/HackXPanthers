@@ -87,10 +87,16 @@
   ],
   "CUSTOMER": [
     {
-      "title": "Browse Events",
-      "icon": "Search",
+      "title": "Dashboard",
+      "icon": "Home",
       "path": "/customer"
     },
+    {
+      "title": "Browse Events",
+      "icon": "Search",
+      "path": "/customer/events"
+    },
+    
     {
       "title": "My Tickets",
       "icon": "Ticket",
