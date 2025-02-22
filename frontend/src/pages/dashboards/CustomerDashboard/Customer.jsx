@@ -15,7 +15,7 @@ const Customer = () => {
       <Routes>
         <Route path="/" element={<CustomerDashboard />} />
         <Route path="events" element={<Events />} />
-        <Route path="booking" element={<Booking />} />
+        <Route path="booking/:id" element={<Booking />} />
         <Route path="tickets" element={<Ticket />} />
         <Route path="following" element={<Following />} />
         <Route path="profile" element={<Profile />} />
