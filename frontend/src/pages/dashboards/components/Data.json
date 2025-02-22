@@ -1,0 +1,105 @@
+{
+  "VENUE": [
+    {
+      "title": "Dashboard",
+      "icon": "LayoutDashboard",
+      "path": "/venue"
+    },
+    {
+      "title": "Profile",
+      "icon": "User",
+      "path": "/venue/profile"
+    },
+    {
+      "title": "Manage Venues",
+      "icon": "Building2",
+      "path": "/venue/manage"
+    },
+    {
+      "title": "Booking Proposals",
+      "icon": "CalendarCheck",
+      "path": "/venue/proposals"
+    },
+    {
+      "title": "Analytics",
+      "icon": "BarChart3",
+      "path": "/venue/analytics"
+    }
+  ],
+  "ARTIST": [
+    {
+      "title": "Dashboard",
+      "icon": "LayoutDashboard",
+      "path": "/artist"
+    },
+    {
+      "title": "Profile",
+      "icon": "User",
+      "path": "/artist/profile"
+    },
+    {
+      "title": "Browse Venues",
+      "icon": "Search",
+      "path": "/artist/venues"
+    },
+    {
+      "title": "My Proposals",
+      "icon": "FileText",
+      "path": "/artist/proposals"
+    },
+    {
+      "title": "Performance Stats",
+      "icon": "BarChart3",
+      "path": "/artist/stats"
+    }
+  ],
+  "ADMIN": [
+    {
+      "title": "Dashboard",
+      "icon": "LayoutDashboard",
+      "path": "/admin"
+    },
+    {
+      "title": "User Management",
+      "icon": "Users",
+      "path": "/admin/users"
+    },
+    {
+      "title": "Event Proposals",
+      "icon": "CalendarCheck",
+      "path": "/admin/proposal"
+    },
+    {
+      "title": "Content Moderation",
+      "icon": "Shield",
+      "path": "/admin/moderation"
+    },
+    {
+      "title": "Platform Analytics",
+      "icon": "BarChart3",
+      "path": "/admin/analytics"
+    }
+  ],
+  "CUSTOMER": [
+    {
+      "title": "Browse Events",
+      "icon": "Search",
+      "path": "/customer"
+    },
+    {
+      "title": "My Tickets",
+      "icon": "Ticket",
+      "path": "/customer/tickets"
+    },
+    {
+      "title": "Following",
+      "icon": "Heart",
+      "path": "/customer/following"
+    },
+    {
+      "title": "Profile",
+      "icon": "User",
+      "path": "/customer/profile"
+    }
+  ]
+}

@@ -1,11 +1,22 @@
-import React from 'react'
-
+import React from "react";
+import Sidebar from "../components/Sidebar";
+import CustomerDashboard from "./pages/CustomerDashboard";
+import Ticket from "./pages/Ticket";
+import Following from "./pages/Following";
+import Profile from "./pages/Profile";
+import { Route,Routes } from "react-router-dom";
 const Customer = () => {
   return (
-    <div>
-      customer
+    <div className="flex h-screen bg-background">
+      <Sidebar />
+      <Routes>
+        <Route path="/" element={<CustomerDashboard />} />
+        <Route path="tickets" element={<Ticket />} />
+        <Route path="following" element={<Following />} />
+        <Route path="profile" element={<Profile />} />
+      </Routes>
     </div>
-  )
-}
+  );
+};
 
-export default Customer
+export default Customer;
