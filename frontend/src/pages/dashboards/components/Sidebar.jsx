@@ -88,10 +88,10 @@ const Sidebar = () => {
 
   useEffect(() => {
     const role = localStorage.getItem("userRole");
-    if (!role) {
-      navigate("/");
-      return;
-    }
+    // if (!role) {
+    //   navigate("/");
+    //   return;
+    // }
     setUserRole(role);
     setMenuItems(menuData[role] || []);
   }, [navigate]);
@@ -106,7 +106,7 @@ const Sidebar = () => {
     <motion.div
       initial={{ x: -100, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
-       className="sticky top-0 left-0 h-screen w-64 bg-background/50 backdrop-blur-lg border-r border-primary/10 p-4 flex flex-col overflow-y-auto"
+       className="sticky h-screen w-64 min-w-64 bg-background/50 backdrop-blur-lg border-r border-primary/10 p-4 flex flex-col overflow-y-auto"
        style={{position: 'sticky'}}
     >
       {/* Logo section with hover effect */}
