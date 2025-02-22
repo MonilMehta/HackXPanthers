@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { registerVenue, getAllVenues, bookVenue } from "../controllers/venue.controller";
+import { registerVenue, getAllVenues, bookVenue } from "../controllers/venue.controller.js";
 
 const router = Router();
 

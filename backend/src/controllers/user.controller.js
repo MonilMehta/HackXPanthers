@@ -3,9 +3,6 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.models.js";
 import jwt from "jsonwebtoken";
-import mongoose from "mongoose";
-import { Artist } from "../models/artist.models.js";
-import { Followers } from "../models/follower.models.js";
 
 const generateAccessAndRefreshTokens = async(userId) => {
     try {
@@ -27,7 +24,7 @@ const registerUser = asyncHandler( async ( req, res ) => {
     const { username, email, fullName, phone_no, age, gender, address, profile_image, password} = req.body
 
     if(
-        [username, email, fullName, phone_no, gender, password].some((field) => field?.trim() === '')
+        [username, email, fullName, phone_no, password].some((field) => field?.trim() === '')
     ) {
         throw new ApiError(400, "All fields are required")
     }

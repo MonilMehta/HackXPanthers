@@ -78,8 +78,6 @@ const registerVenue = async (req, res) => {
     }
 };
 
-import { Venue } from "../models/venueModel.js";
-
 // Get all venue details with populated references
 const getAllVenues = async (req, res) => {
     try {
