@@ -37,7 +37,7 @@ const Signup = () => {
   return (
     <AuthLayout>
       <PageTransition>
-        <Card className="border-none shadow-none card-glass">
+        <Card className="auth-card">
           <CardHeader className="space-y-1">
             <motion.div
               initial={{ opacity: 0, y: -20 }}
@@ -68,39 +68,41 @@ const Signup = () => {
                   className="space-y-4"
                 >
                   <div className="space-y-2">
-                    <Label>Full Name</Label>
+                    <Label className="text-foreground/70">Full Name</Label>
                     <Input
                       type="text"
                       placeholder="John Doe"
                       required
-                      className="bg-background/50 backdrop-blur-sm border-primary/20"
+                      className="auth-input"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Email</Label>
+                    <Label className="text-foreground/70">Email</Label>
                     <Input
                       type="email"
                       placeholder="you@example.com"
                       required
-                      className="bg-background/50 backdrop-blur-sm border-primary/20"
+                      className="auth-input"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Password</Label>
+                    <Label className="text-foreground/70">Password</Label>
                     <Input
                       type="password"
                       placeholder="Create a strong password"
                       required
-                      className="bg-background/50 backdrop-blur-sm border-primary/20"
+                      className="auth-input"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Confirm Password</Label>
+                    <Label className="text-foreground/70">
+                      Confirm Password
+                    </Label>
                     <Input
                       type="password"
                       placeholder="Confirm your password"
                       required
-                      className="bg-background/50 backdrop-blur-sm border-primary/20"
+                      className="auth-input"
                     />
                   </div>
                   <Button type="submit" className="w-full">
@@ -115,21 +117,17 @@ const Signup = () => {
                   className="space-y-4"
                 >
                   <div className="space-y-2">
-                    <Label>Phone Number</Label>
+                    <Label className="text-foreground/70">Phone Number</Label>
                     <Input
                       type="tel"
                       placeholder="Your phone number"
                       required
-                      className="bg-background/50 backdrop-blur-sm border-primary/20"
+                      className="auth-input"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Date of Birth</Label>
-                    <Input
-                      type="date"
-                      required
-                      className="bg-background/50 backdrop-blur-sm border-primary/20"
-                    />
+                    <Label className="text-foreground/70">Date of Birth</Label>
+                    <Input type="date" required className="auth-input" />
                   </div>
                   <div className="flex items-center space-x-2">
                     <Checkbox id="terms" required />

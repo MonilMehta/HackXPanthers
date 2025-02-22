@@ -86,7 +86,7 @@ const Signin = () => {
   return (
     <AuthLayout>
       <PageTransition>
-        <Card className="border-none shadow-none card-glass">
+        <Card className="auth-card">
           <CardHeader className="space-y-1">
             <motion.div
               initial={{ opacity: 0, y: -20 }}
@@ -110,16 +110,16 @@ const Signin = () => {
               transition={{ delay: 0.3 }}
             >
               <div className="space-y-2">
-                <Label>User Type</Label>
+                <Label className="text-foreground/70">User Type</Label>
                 <Select
                   onValueChange={handleUserTypeChange}
                   value={userType}
                   required
                 >
-                  <SelectTrigger className="w-full bg-background/50 backdrop-blur-sm border-primary/20 hover:bg-background/60 transition-colors">
+                  <SelectTrigger className="auth-select">
                     <SelectValue placeholder="Select your role" />
                   </SelectTrigger>
-                  <SelectContent className="bg-background/95 backdrop-blur-md border-primary/20">
+                  <SelectContent className="auth-select-content">
                     <SelectItem value="ADMIN" className="hover:bg-primary/10">
                       Administrator
                     </SelectItem>
@@ -140,7 +140,7 @@ const Signin = () => {
               </div>
 
               <div className="space-y-2">
-                <Label>Email</Label>
+                <Label className="text-foreground/70">Email</Label>
                 <Input
                   type="email"
                   name="email"
@@ -148,7 +148,7 @@ const Signin = () => {
                   onChange={handleInputChange}
                   placeholder="you@example.com"
                   required
-                  className="bg-background/50 backdrop-blur-sm border-primary/20"
+                  className="auth-input"
                 />
               </div>
 
@@ -161,7 +161,7 @@ const Signin = () => {
                   onChange={handleInputChange}
                   placeholder="••••••••"
                   required
-                  className="bg-background/50 backdrop-blur-sm border-primary/20"
+                  className="auth-input"
                 />
               </div>
 
@@ -181,7 +181,7 @@ const Signin = () => {
                         value={formState.adminKey}
                         onChange={handleInputChange}
                         placeholder="Enter admin key"
-                        className="bg-background/50 backdrop-blur-sm border-primary/20"
+                        className="auth-input"
                       />
                     </div>
                   )}
@@ -194,7 +194,7 @@ const Signin = () => {
                         value={formState.venueId}
                         onChange={handleInputChange}
                         placeholder="Enter venue ID"
-                        className="bg-background/50 backdrop-blur-sm border-primary/20"
+                        className="auth-input"
                       />
                     </div>
                   )}
@@ -207,7 +207,7 @@ const Signin = () => {
                         value={formState.artistId}
                         onChange={handleInputChange}
                         placeholder="Enter artist ID"
-                        className="bg-background/50 backdrop-blur-sm border-primary/20"
+                        className="auth-input"
                       />
                     </div>
                   )}
