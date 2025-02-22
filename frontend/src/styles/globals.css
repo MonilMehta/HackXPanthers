@@ -25,11 +25,11 @@
     --background: #1a1a1a;
     --foreground: #ffffff;
     --card: #0f0f0f;
-    --primary: #ffd700;
+    --primary: #fbe35d;
     --primary-foreground: #000000;
     --secondary: #d3d3d3;
     --secondary-foreground: #aaaaaa;
-    --accent: #f5c518;
+    --accent: #f7dd80;
     --accent-hover: #e6b800;
     --accent-foreground: #000000;
     --muted: #666666;
@@ -37,7 +37,7 @@
     --border: #0f0f0f;
     
     /* Additional colors for dark theme */
-    --highlight: #ffd700;
+    --highlight: #f5e06d;
     --highlight-foreground: #000000;
     --input: #0f0f0f;
     --ring: #ffd700;
