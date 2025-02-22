@@ -1,4 +1,4 @@
-import { Event } from "../models/Event.js";
+import { Event } from "../models/event.models.js";
 import { Admin } from "../models/admin.models.js";
 import jwt from "jsonwebtoken";
 

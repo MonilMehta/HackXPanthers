@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import { registerAdmin, loginAdmin, refreshAccessToken } from "../controllers/admin.controller";
+import { registerAdmin, loginAdmin, refreshAccessToken } from "../controllers/admin.controller.js";
 
 const router = Router();
 
