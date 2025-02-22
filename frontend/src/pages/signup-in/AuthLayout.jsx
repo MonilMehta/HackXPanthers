@@ -27,7 +27,7 @@ const FloatingIcon = ({ Icon, x, y, delay, scale = 1, opacity = 0.2 }) => (
       rotate: [0, 15, -15, 0],
     }}
     transition={{
-      duration: 3 + Math.random() * 2,
+      duration: 5 + Math.random() * 3,
       repeat: Infinity,
       repeatType: "reverse",
       delay: delay,
@@ -57,59 +57,60 @@ const Particle = ({ x, y, delay }) => (
   />
 );
 
-const BouncingParticle = ({ initialX, initialY, delay }) => (
-  <motion.div
-    className="absolute w-1 h-1 rounded-full bg-primary/20 pointer-events-none"
-    initial={{ x: initialX, y: initialY, opacity: 0 }}
-    animate={{
-      x: [initialX, initialX + 100, initialX - 100, initialX],
-      y: [initialY, initialY - 100, initialY + 100, initialY],
-      opacity: [0.1, 0.3, 0.1],
-    }}
-    transition={{
-      duration: 6 + Math.random() * 3,
-      repeat: Infinity,
-      repeatType: "reverse",
-      ease: "linear",
-      delay: delay,
-    }}
-    style={{
-      width: Math.random() * 3 + 1 + "px",
-      height: Math.random() * 3 + 1 + "px",
-    }}
-  />
-);
-
-const AuthLayout = ({ children }) => {
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0, speed: 0 });
-  const lastMousePosition = React.useRef({ x: 0, y: 0, timestamp: 0 });
+const BouncingParticle = ({ initialX, initialY, delay }) => {
+  const [dimensions, setDimensions] = useState({
+    width: typeof window !== "undefined" ? window.innerWidth : 1000,
+    height: typeof window !== "undefined" ? window.innerHeight : 1000,
+  });
 
   useEffect(() => {
-    const handleMouseMove = (e) => {
-      const now = Date.now();
-      const dt = now - lastMousePosition.current.timestamp;
-      if (dt > 0) {
-        const dx = e.clientX - lastMousePosition.current.x;
-        const dy = e.clientY - lastMousePosition.current.y;
-        const speed = (Math.sqrt(dx * dx + dy * dy) / dt) * 1000; // pixels per second
-
-        setMousePosition({
-          x: e.clientX,
-          y: e.clientY,
-          speed: speed,
-        });
-      }
-      lastMousePosition.current = {
-        x: e.clientX,
-        y: e.clientY,
-        timestamp: now,
-      };
+    const handleResize = () => {
+      setDimensions({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
     };
-
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  const generateRandomVelocity = () => ({
+    x: (Math.random() - 0.5) * 2,
+    y: (Math.random() - 0.5) * 2,
+  });
+
+  return (
+    <motion.div
+      className="absolute w-1 h-1 rounded-full bg-primary/20 pointer-events-none"
+      initial={{ x: initialX, y: initialY, opacity: 0 }}
+      animate={{
+        x: [initialX, initialX + 100, initialX - 100, initialX],
+        y: [initialY, initialY - 100, initialY + 100, initialY],
+        opacity: [0.1, 0.3, 0.1],
+      }}
+      transition={{
+        duration: 10 + Math.random() * 5,
+        repeat: Infinity,
+        repeatType: "reverse",
+        ease: "linear",
+        delay: delay,
+      }}
+      style={{
+        width: Math.random() * 3 + 1 + "px",
+        height: Math.random() * 3 + 1 + "px",
+      }}
+      drag
+      dragConstraints={{
+        left: 0,
+        right: dimensions.width,
+        top: 0,
+        bottom: dimensions.height,
+      }}
+    />
+  );
+};
+
+const AuthLayout = ({ children }) => {
   const getRandomPosition = () => ({
     x: typeof window !== "undefined" ? Math.random() * window.innerWidth : 0,
     y: typeof window !== "undefined" ? Math.random() * window.innerHeight : 0,
@@ -131,9 +132,12 @@ const AuthLayout = ({ children }) => {
     const large = [
       { Icon: Laugh, delay: 0, scale: 2 },
       { Icon: PartyPopper, delay: 1, scale: 2.2 },
-      { Icon: Crown, delay: 2, scale: 1.8 },
+      { Icon: Crown, delay: 1, scale: 1.8 },
       { Icon: Popcorn, delay: 0.5, scale: 2.5 },
       { Icon: Laugh, delay: 0, scale: 2 },
+      { Icon: PartyPopper, delay: 1, scale: 2.2 },
+      { Icon: Crown, delay: 1, scale: 1.8 },
+      { Icon: Popcorn, delay: 0.5, scale: 2.5 },
       { Icon: PartyPopper, delay: 1, scale: 2.2 },
       { Icon: Crown, delay: 2, scale: 1.8 },
       { Icon: Popcorn, delay: 0.5, scale: 2.5 },
@@ -149,7 +153,23 @@ const AuthLayout = ({ children }) => {
       { Icon: Star, delay: 1.5 },
       { Icon: Sparkles, delay: 2 },
       { Icon: Heart, delay: 2.5 },
+      { Icon: Music, delay: 1 },
+      { Icon: Smile, delay: 1.5 },
+      { Icon: Zap, delay: 4 },
+      { Icon: Ticket, delay: 1.5 },
+      { Icon: Mic2, delay: 1 },
+      { Icon: Star, delay: 1.5 },
+      { Icon: Sparkles, delay: 2 },
+      { Icon: Heart, delay: 2.5 },
       { Icon: Music, delay: 3 },
+      { Icon: Smile, delay: 2.5 },
+      { Icon: Zap, delay: 4 },
+      { Icon: Ticket, delay: 2.5 },
+      { Icon: Mic2, delay: 1 },
+      { Icon: Star, delay: 1.5 },
+      { Icon: Sparkles, delay: 2 },
+      { Icon: Heart, delay: 2.5 },
+      { Icon: Music, delay: 2 },
       { Icon: Smile, delay: 3.5 },
       { Icon: Zap, delay: 4 },
       { Icon: Ticket, delay: 4.5 },
@@ -160,23 +180,7 @@ const AuthLayout = ({ children }) => {
       { Icon: Music, delay: 3 },
       { Icon: Smile, delay: 3.5 },
       { Icon: Zap, delay: 4 },
-      { Icon: Ticket, delay: 4.5 },
-      { Icon: Mic2, delay: 1 },
-      { Icon: Star, delay: 1.5 },
-      { Icon: Sparkles, delay: 2 },
-      { Icon: Heart, delay: 2.5 },
-      { Icon: Music, delay: 3 },
-      { Icon: Smile, delay: 3.5 },
-      { Icon: Zap, delay: 4 },
-      { Icon: Ticket, delay: 4.5 },
-      { Icon: Mic2, delay: 1 },
-      { Icon: Star, delay: 1.5 },
-      { Icon: Sparkles, delay: 2 },
-      { Icon: Heart, delay: 2.5 },
-      { Icon: Music, delay: 3 },
-      { Icon: Smile, delay: 3.5 },
-      { Icon: Zap, delay: 4 },
-      { Icon: Ticket, delay: 4.5 },
+      { Icon: Ticket, delay: 4.5 }
     ].map((icon, i) => ({
       ...icon,
       ...getRandomPosition(),
@@ -195,22 +199,14 @@ const AuthLayout = ({ children }) => {
         {/* Large floating icons in background */}
         <AnimatePresence mode="sync">
           {icons.large.map((icon) => (
-            <FloatingIcon
-              key={icon.id}
-              {...icon}
-              mousePosition={mousePosition}
-            />
+            <FloatingIcon key={icon.id} {...icon} />
           ))}
         </AnimatePresence>
 
         {/* Medium floating icons in middle layer */}
         <AnimatePresence mode="sync">
           {icons.medium.map((icon) => (
-            <FloatingIcon
-              key={icon.id}
-              {...icon}
-              mousePosition={mousePosition}
-            />
+            <FloatingIcon key={icon.id} {...icon} />
           ))}
         </AnimatePresence>
 
@@ -222,7 +218,6 @@ const AuthLayout = ({ children }) => {
               initialX={particle.x}
               initialY={particle.y}
               delay={particle.delay}
-              mousePosition={mousePosition}
             />
           ))}
         </AnimatePresence>
