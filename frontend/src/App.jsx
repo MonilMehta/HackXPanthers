@@ -21,12 +21,12 @@ function AnimatedRoutes() {
         <Route path="/" element={<Landing />} />
         <Route path="/signin" element={<Signin />} />
         <Route path="/signup" element={<Signup />} />
-        <Route path="/staffsignin" element={<StaffSignin />} />
-        <Route path="/staffsignup" element={<StaffSignup />} />
         <Route path="/admin/*" element={<Admin />} />
         <Route path="/venue/*" element={<VenueManager />} />
         <Route path="/artist/*" element={<Artist />} />
         <Route path="/customer/*" element={<Customer />} />
+        <Route path="/staffsignin" element={<StaffSignin />} />
+        <Route path="/staffsignup" element={<StaffSignup />} />
       </Routes>
     </AnimatePresence>
   );
@@ -36,8 +36,10 @@ function App() {
   return (
     <ThemeProvider>
       <BrowserRouter>
-        <Toaster />
-        <AnimatedRoutes />
+        <div>
+          <Toaster />
+          <AnimatedRoutes />
+        </div>
       </BrowserRouter>
     </ThemeProvider>
   );
