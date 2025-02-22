@@ -1,6 +1,5 @@
 import { Event } from "../models/Event.js";
 
-
 const createEvent = async (req, res) => {
     try {
         const {
@@ -68,4 +67,35 @@ const getEventDetails = async (req, res) => {
     }
 };
 
-export { createEvent , getEventDetails };
+const approveEvent = async (req, res) => {
+    try {
+        const { id } = req.body;
+
+        // Find the event by ID
+        const event = await Event.findById(id);
+
+        if (!event) {
+            return res.status(404).json({ message: "Event not found" });
+        }
+
+        // Check if event is already approved
+        if (event.status === "approved") {
+            return res.status(400).json({ message: "Event is already approved" });
+        }
+
+        // Update the event status and approval date
+        event.status = "approved";
+        event.approvalDate = new Date();
+
+        await event.save();
+
+        res.status(200).json({
+            message: "Event has been successfully approved",
+            event,
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Failed to approve event", error: error.message });
+    }
+};
+
+export { createEvent , getEventDetails, approveEvent };
