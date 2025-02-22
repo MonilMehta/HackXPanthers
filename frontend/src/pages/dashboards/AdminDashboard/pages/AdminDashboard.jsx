@@ -7,6 +7,10 @@ import {
   ArrowUpRight,
   BarChart2,
 } from "lucide-react";
+import {
+  BookingTrendsChart,
+  RevenueChart,
+} from "@/components/charts/AnalyticsCharts";
 
 const StatCard = ({ title, value, icon: Icon, change }) => (
   <Card className="p-6 space-y-4 bg-background/50 backdrop-blur-sm border-primary/20">
@@ -63,14 +67,13 @@ const AdminDashboard = () => {
         </div>
 
         <div className="grid lg:grid-cols-2 gap-6">
-          {/* Add charts here later */}
-          <Card className="p-6 h-[400px] bg-background/50 backdrop-blur-sm border-primary/20">
+          <Card className="p-6 bg-background/50 backdrop-blur-sm border-primary/20">
             <h3 className="text-lg font-semibold mb-4">Revenue Overview</h3>
-            {/* Add revenue chart */}
+            <RevenueChart />
           </Card>
-          <Card className="p-6 h-[400px] bg-background/50 backdrop-blur-sm border-primary/20">
-            <h3 className="text-lg font-semibold mb-4">User Growth</h3>
-            {/* Add user growth chart */}
+          <Card className="p-6 bg-background/50 backdrop-blur-sm border-primary/20">
+            <h3 className="text-lg font-semibold mb-4">Booking Trends</h3>
+            <BookingTrendsChart />
           </Card>
         </div>
       </div>
