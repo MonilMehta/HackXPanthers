@@ -36,14 +36,14 @@ function StaffSignin() {
 
     setIsLoading(true);
 
-    // Store role in localStorage
+    // Store role in localStorage with userRole key
     const roleMap = {
       venue: "VENUE",
       artist: "ARTIST",
       administrator: "ADMIN",
     };
 
-    localStorage.setItem("userRole", roleMap[formData.userType]);
+    localStorage.setItem("userRole", roleMap[formData.userType]); // Using userRole consistently
 
     // Navigate based on role
     const routeMap = {
