@@ -126,7 +126,7 @@ const Users = () => {
                     <div className="flex items-center gap-3">
                       <Avatar>
                         <AvatarImage src={user.profile_image} />
-                        <AvatarFallback>{user.fullName[0]}</AvatarFallback>
+                        <AvatarFallback>{user.fullName || "John Doe"}</AvatarFallback>
                       </Avatar>
                       <div>
                         <p className="font-medium">{user.fullName}</p>
