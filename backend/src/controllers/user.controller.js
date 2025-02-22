@@ -22,31 +22,6 @@ const generateAccessAndRefreshTokens = async(userId) => {
     }
 }
 
-const getFollowedArtists = async (req, res) => {
-    try {
-      const { userId } = req.body; // Get user ID from URL parameters
-  
-      // Find the artists followed by the user
-      const followedData = await Followers.findOne({ user: userId }).populate({
-        path: "artist",
-        select: "username profile_image", // Select only fullname and profile_image
-      });
-  
-      // If no followed artists found
-      if (!followedData || followedData.artist.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: "No followed artists found for this user.",
-        });
-      }
-  
-      res.status(200).json({ success: true, data: followedData.artist });
-    } catch (error) {
-      console.error("Error fetching followed artists:", error);
-      res.status(500).json({ success: false, message: "Server error" });
-    }
-  };
-
 const registerUser = asyncHandler( async ( req, res ) => {
 
     const { username, email, fullName, phone_no, age, gender, address, profile_image, password} = req.body
@@ -287,4 +262,4 @@ const updateAccountDetails = asyncHandler( async ( req, res ) => {
     )
 })
 
-export { getFollowedArtists, registerUser , loginUser, logoutUser, refreshAccessToken, changeCurrentPassword, getCurrentUser, updateAccountDetails }
+export { registerUser , loginUser, logoutUser, refreshAccessToken, changeCurrentPassword, getCurrentUser, updateAccountDetails }

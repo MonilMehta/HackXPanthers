@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getFollowedArtists, changeCurrentPassword, getCurrentUser, loginUser, logoutUser, refreshAccessToken, registerUser, updateAccountDetails } from "../controllers/user.controller.js";
+import { changeCurrentPassword, getCurrentUser, loginUser, logoutUser, refreshAccessToken, registerUser, updateAccountDetails } from "../controllers/user.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const router = Router();
@@ -18,7 +18,5 @@ router.route("/change-password").post(verifyJWT, changeCurrentPassword)
 router.route("/current-user").get(verifyJWT, getCurrentUser)
 
 router.route("/update-details").patch(verifyJWT, updateAccountDetails)
-
-router.route("/get-followed-artists").get(verifyJWT, getFollowedArtists)
 
 export default router

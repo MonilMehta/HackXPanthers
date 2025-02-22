@@ -1,7 +1,7 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
-import { Followers } from "../models/Followers.js";
+import { Followers } from "../models/follower.models.js";
 
 const followArtist = asyncHandler(async (req, res) => {
   const { artistId } = req.body;
@@ -88,4 +88,4 @@ const getFollowing = asyncHandler(async (req, res) => {
     );
 });
 
-export { followArtist, unfollowArtist, getFollowers, getFollowers }
+export { followArtist, unfollowArtist, getFollowers, getFollowing }

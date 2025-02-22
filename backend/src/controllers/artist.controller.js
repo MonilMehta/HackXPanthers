@@ -2,7 +2,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import {Artist} from "../models/artist.models.js";
-import { Followers } from "../models/follower.models.js";
+import { Followers  } from "../models/follower.models.js";
 const generateAccessAndRefreshTokens = async(artistId) => {
     try {
         const artist = await Artist.findById(artistId)
@@ -111,9 +111,6 @@ const registerArtist = asyncHandler( async ( req, res ) => {
     )
 
 })
-
-
-import { Followers } from "../models/followers.js"; // Adjust the path as needed
 
 const getOneArtist = async (req, res) => {
   try {
