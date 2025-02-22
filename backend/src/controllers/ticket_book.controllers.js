@@ -159,23 +159,27 @@ const bookTickets = async (req, res) => {
             { new: true }
         );
 
-        // 5. Update venue seat status
+        // 5. Update venue seat status with corrected query
         for (const seat of selectedSeats) {
+            const seatNumber = parseInt(seat.seatNumber);
+            const seatSet = venue.seatLayout.find(s => s.name === seat.seatSetName);
+            const row = Math.ceil(seatNumber / seatSet.columns);
+            const column = ((seatNumber - 1) % seatSet.columns) + 1;
+            const seatIndex = (row - 1) * seatSet.columns + (column - 1);
+
             await Venue.updateOne(
-                { 
-                    _id: event.venueId,
-                    "seatLayout.name": seat.seatSetName,
-                    "seatLayout.seats.seatNumber": seat.seatNumber
-                },
+                { _id: event.venueId },
                 {
                     $set: {
-                        "seatLayout.$.seats.$[seat].isBooked": true,
-                        "seatLayout.$.seats.$[seat].bookedBy": userId,
-                        "seatLayout.$.seats.$[seat].status": "booked"
+                        [`seatLayout.$[section].seats.${seatIndex}.isBooked`]: true,
+                        [`seatLayout.$[section].seats.${seatIndex}.bookedBy`]: userId,
+                        [`seatLayout.$[section].seats.${seatIndex}.status`]: "booked"
                     }
                 },
                 {
-                    arrayFilters: [{ "seat.seatNumber": seat.seatNumber }]
+                    arrayFilters: [
+                        { "section.name": seat.seatSetName }
+                    ]
                 }
             );
         }
