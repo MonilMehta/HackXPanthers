@@ -1,7 +1,7 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
-import { Artist } from "../models/Artist.js";
+import { Artist } from "../models/artist.models.js";
 
 const generateAccessAndRefreshTokens = async(artistId) => {
     try {

@@ -1,14 +1,14 @@
 import mongoose, { Schema } from "mongoose";
 
-const review_schema = new Schema(
+const reviewSchema = new Schema(
     {
         artistId: {
-            type: mongoose.Schema.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref: 'Artist',
             required: true
         },
         userId: {
-            type: mongoose.Schema.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref: 'User',
             required: true
         },
@@ -27,5 +27,4 @@ const review_schema = new Schema(
     }
 )
 
-const Review = mongoose.model('Review', review_schema);
-export default Review;
+export const Review = mongoose.model('Review', reviewSchema);

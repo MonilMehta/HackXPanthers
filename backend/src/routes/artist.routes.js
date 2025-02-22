@@ -1,15 +1,15 @@
 import { Router } from "express";
-import { createArtist, loginArtist, viewArtist, getArtistById, getArtists} from "../controllers/artist.controller.js";
+import { registerArtist, loginArtist, viewArtist, getOneArtist, getAllArtist} from "../controllers/artist.controller.js";
 
 const router = Router();
 
-router.route("/registerArtist").post(createArtist);
+router.route("/registerArtist").post(registerArtist);
 
 router.route("/loginArtist").post(loginArtist);
 
-router.route("/getArtist").get(getArtists);
+router.route("/getArtist").get(getAllArtist);
 
-router.route("/getOneArtist").get(getArtistById);
+router.route("/getOneArtist").get(getOneArtist);
 
 router.route("/viewArtist").get(viewArtist);
 
