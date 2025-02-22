@@ -89,3 +89,71 @@ body {
   backdrop-filter: blur(12px) !important;
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+}
+
+.dark .glass-card {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.venue-card {
+  transition: all 0.3s ease;
+}
+
+.venue-card:hover {
+  transform: translateY(-5px);
+}
+
+.show-card {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.show-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to right bottom, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  z-index: 0;
+}
+
+.dark .show-card::before {
+  background: linear-gradient(to right bottom, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.1));
+}
+
+/* Venue Carousel Styles */
+.venue-carousel .slick-dots {
+  bottom: -10px;
+}
+
+.venue-carousel .slick-dots li button:before {
+  color: var(--primary);
+}
+
+.venue-carousel .slick-prev,
+.venue-carousel .slick-next {
+  display: none !important;
+}
+
+.venue-carousel .slick-slide {
+  padding: 0.5rem;
+}
+
+.venue-carousel .slick-list {
+  margin: -0.5rem 0;
+}
+
+.venue-carousel .slick-track {
+  display: flex;
+  gap: 1rem;
+}

@@ -63,7 +63,7 @@ const ProposalCard = ({ proposal }) => (
   </Card>
 );
 
-const Proposal = () => {
+const AddShow = () => {
   const proposals = [
     {
       id: 1,
@@ -112,4 +112,4 @@ const Proposal = () => {
   );
 };
 
-export default Proposal;
+export default AddShow;

@@ -185,32 +185,7 @@ const Signin = () => {
                       />
                     </div>
                   )}
-                  {userType === "VENUE" && (
-                    <div className="space-y-2">
-                      <Label>Venue ID</Label>
-                      <Input
-                        type="text"
-                        name="venueId"
-                        value={formState.venueId}
-                        onChange={handleInputChange}
-                        placeholder="Enter venue ID"
-                        className="auth-input"
-                      />
-                    </div>
-                  )}
-                  {userType === "ARTIST" && (
-                    <div className="space-y-2">
-                      <Label>Artist ID</Label>
-                      <Input
-                        type="text"
-                        name="artistId"
-                        value={formState.artistId}
-                        onChange={handleInputChange}
-                        placeholder="Enter artist ID"
-                        className="auth-input"
-                      />
-                    </div>
-                  )}
+
                 </motion.div>
               )}
 
