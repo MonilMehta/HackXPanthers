@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { HyperText } from "@/components/magicui/hyper-text";
 
 export const CallToAction = () => {
   const navigate = useNavigate();
@@ -14,7 +15,7 @@ export const CallToAction = () => {
           className="max-w-3xl mx-auto"
         >
           <h2 className="text-4xl font-bold mb-6">
-            Ready to Join the Comedy Revolution?
+            <HyperText>Ready to Join the Comedy Revolution?</HyperText>
           </h2>
           <p className="text-xl text-gray-300 mb-8">
             Start your journey today and be part of the fastest-growing comedy

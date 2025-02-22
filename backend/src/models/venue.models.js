@@ -121,6 +121,15 @@ const venueSchema = new Schema(
                 ref: "Review",
             }
         ],
+        status: {
+            type: String,
+            enum: ['pending_approval', 'approved_by_admin', 'approved', 'rejected'],
+            default: 'pending_approval'
+        },
+        verificationToken: {
+            type: String,
+            default: null
+        },
         isActive: {
             type: Boolean, 
             default: true 
