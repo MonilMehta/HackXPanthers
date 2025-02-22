@@ -1,4 +1,6 @@
-import { Event } from "../models/event.models.js";
+import { Event } from "../models/Event.js";
+import { Admin } from "../models/admin.models.js";
+import jwt from "jsonwebtoken";
 
 const createEvent = async (req, res) => {
     try {
@@ -70,11 +72,23 @@ const getEventDetails = async (req, res) => {
 
 const approveEvent = async (req, res) => {
     try {
+        const token = req.cookies.accessToken || req.headers.authorization?.split(" ")[1];
+        if (!token) {
+            return res.status(401).json({ message: "Unauthorized: No token provided" });
+        }
+
+        const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+        const adminId = decoded._id;
+
+        const admin = await Admin.findById(adminId);
+        if (!admin) {
+            return res.status(404).json({ message: "Admin not found" });
+        }
+
         const { id } = req.body;
 
         // Find the event by ID
         const event = await Event.findById(id);
-
         if (!event) {
             return res.status(404).json({ message: "Event not found" });
         }
@@ -84,9 +98,11 @@ const approveEvent = async (req, res) => {
             return res.status(400).json({ message: "Event is already approved" });
         }
 
-        // Update the event status and approval date
+        // Update the event status and approval details
         event.status = "approved";
+        event.isApproved = true;
         event.approvalDate = new Date();
+        event.approvedBy = adminId; // Store the admin ID who approved the event
 
         await event.save();
 
@@ -95,6 +111,7 @@ const approveEvent = async (req, res) => {
             event,
         });
     } catch (error) {
+        console.error("Error approving event:", error);
         res.status(500).json({ message: "Failed to approve event", error: error.message });
     }
 };

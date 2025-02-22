@@ -61,6 +61,14 @@ const eventSchema = new Schema(
             type: Number,
             required: true
         },
+        isApproved:{
+            type: Boolean,
+            default: false
+        },
+        approvedBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Admin", // Assuming admin is also stored in the User model
+        },
         approvalDate: Date,
         analytics: {
             totalTicketsSold: { 

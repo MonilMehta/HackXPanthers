@@ -29,6 +29,8 @@ import followersRouter from './routes/followers.routes.js';
 import venueRouter from './routes/venue.routes.js';
 import eventRouter from './routes/event.routes.js';
 import venueManagerRouter from './routes/venueManager.routes.js';
+import adminRouter from './routes/admin.routes.js'; 
+
 // declare routes
 app.use("/api/users", userRouter)
 app.use("/api/artists", artistRouter)
@@ -36,5 +38,6 @@ app.use("/api/followers", followersRouter)
 app.use("/api/venues", venueRouter)
 app.use("/api/events", eventRouter)
 app.use("/api/venuemanagers", venueManagerRouter)
+app.use("/api/admin", adminRouter)
 
 export { app }
