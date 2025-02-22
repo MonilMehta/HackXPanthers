@@ -14,6 +14,8 @@ import {
 import AuthLayout from "../AuthLayout";
 import { Label } from "@/components/ui/label";
 import PageTransition from "@/components/PageTransition";
+import axios from "axios";
+import { login } from "@/api/user.api";
 
 function Signin() {
   const navigate = useNavigate();
@@ -26,11 +28,20 @@ function Signin() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
+
+    try {
+      const response = await axios.post(login, formData);
+      const { accessToken } = response.data.data;
+      console.log(accessToken);
+      localStorage.setItem("accessToken", accessToken);
+      // Handle success
       navigate("/customer");
-    }, 1500);
+    } catch (error) {
+      // Handle error
+      console.error("Error logging in:", error.response?.data || error.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

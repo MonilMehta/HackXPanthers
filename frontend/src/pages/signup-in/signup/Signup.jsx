@@ -23,6 +23,8 @@ import AuthLayout from "../AuthLayout";
 import { Label } from "@/components/ui/label";
 import { Camera, Instagram, Twitter, Facebook } from "lucide-react";
 import PageTransition from "@/components/PageTransition";
+import axios from "axios";
+import { register } from "@/api/user.api";
 
 const ProfileImageUpload = ({ profileImage, onImageChange }) => (
   <div className="space-y-2">
@@ -70,7 +72,7 @@ const Signup = () => {
     username: "",
     email: "",
     fullName: "",
-    phoneNo: "",
+    phone_no: "",
     age: "",
     gender: "",
     password: "",
@@ -164,8 +166,8 @@ const Signup = () => {
         <div className="space-y-2">
           <Label>Phone Number</Label>
           <Input
-            name="phoneNo"
-            value={formData.phoneNo}
+            name="phone_no"
+            value={formData.phone_no}
             onChange={handleInputChange}
             className="bg-background border"
             required
@@ -283,11 +285,27 @@ const Signup = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    // API call simulation
-    setTimeout(() => {
-      setIsLoading(false);
+
+    const dataToSend = {
+      ...formData,
+      address: {
+        street: formData.address.street,
+        city: formData.address.city,
+        state: formData.address.state,
+        pincode: formData.address.pincode,
+      },
+    };
+
+    try {
+      const response = await axios.post(register, dataToSend);
       // Handle success
-    }, 1500);
+      console.log("User registered successfully:", response.data);
+    } catch (error) {
+      // Handle error
+      console.error("Error registering user:", error.response?.data || error.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
