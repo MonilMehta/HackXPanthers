@@ -4,11 +4,12 @@ import mongoose from "mongoose";
 
 // Function to auto-generate seat arrangements
 const generateSeats = (seatSet) => {
+    console.log(seatSet);
     const seats = [];
     const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; // For row labels
 
     for (let r = 0; r < seatSet.rows; r++) {
-        for (let c = 1; c <= seatSet.column; c++) {
+        for (let c = 1; c <= seatSet.columns; c++) {
             seats.push({
                 seatNumber: `${alphabet[r]}${c}`, // Example: A1, B3
                 row: alphabet[r], // A, B, C...
@@ -65,36 +66,15 @@ const getSimilarVenues = async (req, res) => {
 // Controller to register a venue
 const registerVenue = async (req, res) => {
     try {
-        const {
-            managerId,
-            name,
-            address,
-            capacity,
-            seatLayout,
-            amenities,
-            availabilitySchedule,
-            venueTypes,
-            description,
-            images
-        } = req.body;
+        const { managerId, name, address, capacity, seatLayout, amenities, availabilitySchedule, venueTypes, description, images } = req.body;
 
-        // Check for required fields
-        if (!managerId || !name || !capacity || !seatLayout || !description || !images) {
-            return res.status(400).json({ success: false, message: "All required fields must be provided." });
-        }
-
-        // Check if managerId is a valid ObjectId
-        if (!mongoose.Types.ObjectId.isValid(managerId)) {
-            return res.status(400).json({ success: false, message: "Invalid managerId provided." });
-        }
-
-        // Auto-generate seats for each seat set
-        const processedSeatLayout = seatLayout.map(seatSet => ({
-            ...seatSet,
-            seats: generateSeats(seatSet)
+        // Generate seats dynamically for each section
+        const processedSeatLayout = seatLayout.map(section => ({
+            ...section,
+            seats: generateSeats(section) // Ensure seats are created
         }));
 
-        // Create new venue
+        // Create venue document
         const newVenue = new Venue({
             managerId,
             name,
@@ -108,12 +88,19 @@ const registerVenue = async (req, res) => {
             images
         });
 
-        await newVenue.save();
+        await newVenue.save(); // Save to database
 
-        return res.status(201).json({ success: true, message: "Venue registered successfully!", venue: newVenue });
+        return res.status(201).json({
+            success: true,
+            message: "Venue registered successfully!",
+            venue: newVenue
+        });
     } catch (error) {
-        console.error("Error registering venue:", error);
-        return res.status(500).json({ success: false, message: error.message });
+        return res.status(500).json({
+            success: false,
+            message: "Error registering venue",
+            error: error.message
+        });
     }
 };
 
