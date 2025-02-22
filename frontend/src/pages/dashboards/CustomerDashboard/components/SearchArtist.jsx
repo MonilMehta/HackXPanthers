@@ -33,66 +33,6 @@ import axios from "axios";
 import { followArtist, unfollowArtist } from "@/api/follower.api";
 import { toast } from "sonner"; // Add this import
 
-const mockArtists = [
-  {
-    id: 1,
-    name: "Johnny D",
-    image: "https://i.pravatar.cc/150?img=1",
-    genre: "Stand-up Comedy",
-    rating: "4.8",
-    shows: "45+",
-    location: "Mumbai, India",
-    specialization: ["Dark Comedy", "Improv", "Political Satire"],
-    experience: "5 years",
-    bio: "Award-winning comedian known for sharp wit and social commentary",
-    isFollowing: false,
-    isVerified: true,
-  },
-  {
-    id: 2,
-    name: "Sarah Smith",
-    image: "https://i.pravatar.cc/150?img=2",
-    genre: "Improv Comedy",
-    rating: "4.9",
-    shows: "120+",
-    location: "Delhi, India",
-    specialization: ["Musical Comedy", "Character Comedy", "Sketch"],
-    experience: "8 years",
-    bio: "Versatile performer specializing in musical comedy and improv",
-    isFollowing: true,
-    isVerified: true,
-  },
-  {
-    id: 3,
-    name: "Mike Johnson",
-    image: "https://i.pravatar.cc/150?img=3",
-    genre: "Observational Comedy",
-    rating: "4.7",
-    shows: "78+",
-    location: "Bangalore, India",
-    specialization: ["Crowd Work", "Story Telling", "Clean Comedy"],
-    experience: "6 years",
-    bio: "Making people laugh with everyday observations and relatable stories",
-    isFollowing: false,
-    isVerified: true,
-  },
-  {
-    id: 4,
-    name: "Emily Chen",
-    image: "https://i.pravatar.cc/150?img=4",
-    genre: "Musical Comedy",
-    rating: "4.9",
-    shows: "200+",
-    location: "Pune, India",
-    specialization: ["Piano Comedy", "Parody Songs", "Comedy Rock"],
-    experience: "10 years",
-    bio: "Musical comedian blending humor with original songs",
-    isFollowing: true,
-    isVerified: true,
-  },
-  // ... Add 8-10 more similar entries with different specialties and locations
-];
-
 const SearchArtist = () => {
   const [artists, setArtists] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -110,12 +50,19 @@ const SearchArtist = () => {
 
   const debouncedSearch = useDebounce(searchQuery, 500);
 
-  const handleFollow = async (artistId) => {
+  const handleFollow = async (artistId, isCurrentlyFollowing) => {
     try {
       const accessToken = localStorage.getItem("accessToken");
+      if (!accessToken) {
+        toast.error("Please login to follow artists");
+        return;
+      }
+
+      // Use the correct endpoint based on current following status
+      const endpoint = isCurrentlyFollowing ? unfollowArtist : followArtist;
 
       const response = await axios.post(
-        followArtist,
+        endpoint,
         { artistId },
         {
           headers: {
@@ -126,30 +73,98 @@ const SearchArtist = () => {
       );
 
       if (response.data.success) {
-        // Update local state
-        setArtists((prev) =>
-          prev.map((artist) =>
+        // Update both artists and filteredArtists state
+        const updateArtists = (prevArtists) =>
+          prevArtists.map((artist) =>
             artist._id === artistId
-              ? { ...artist, isFollowing: !artist.isFollowing }
+              ? { ...artist, isFollowing: !isCurrentlyFollowing }
               : artist
-          )
-        );
+          );
 
-        // Show success toast
-        toast.success(response.data.message || "Successfully followed artist!");
+        setArtists(updateArtists);
+        setFilteredArtists(updateArtists);
+
+        toast.success(
+          isCurrentlyFollowing
+            ? "Successfully unfollowed artist"
+            : "Successfully followed artist"
+        );
       }
     } catch (error) {
-      console.error("Follow error:", error);
-      toast.error(error.response?.data?.message || "Failed to follow artist");
+      console.error("Follow/Unfollow error:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to update following status"
+      );
     }
   };
 
-  // Add useEffect for fetching artists
+  // Separate useEffect for initial data fetch
   useEffect(() => {
     fetchArtists();
-  }, []);
+  }, []); // This will run only once when component mounts
+
+  // Separate useEffect for filtering
+  useEffect(() => {
+    if (artists.length > 0) {
+      // Only filter if we have artists
+      const filtered = filterArtists();
+      setFilteredArtists(filtered);
+    }
+  }, [debouncedSearch, filters, artists]); // Add artists to dependency array
+
+  const filterArtists = () => {
+    let result = [...artists];
+
+    // Search filter
+    if (debouncedSearch) {
+      result = result.filter(
+        (artist) =>
+          artist.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+          artist.location
+            .toLowerCase()
+            .includes(debouncedSearch.toLowerCase()) ||
+          artist.specialization.some((tag) =>
+            tag.toLowerCase().includes(debouncedSearch.toLowerCase())
+          )
+      );
+    }
+
+    // Genre filter
+    if (filters.genre !== "all") {
+      result = result.filter((artist) =>
+        artist.specialization.includes(filters.genre)
+      );
+    }
+
+    // Rating filter
+    if (filters.rating !== "all") {
+      result = result.filter(
+        (artist) => parseFloat(artist.rating) >= parseFloat(filters.rating)
+      );
+    }
+
+    // Experience filter
+    if (filters.experience !== "all") {
+      result = result.filter((artist) => {
+        const years = parseInt(artist.experience);
+        switch (filters.experience) {
+          case "beginner":
+            return years < 3;
+          case "intermediate":
+            return years >= 3 && years < 7;
+          case "expert":
+            return years >= 7;
+          default:
+            return true;
+        }
+      });
+    }
+
+    return result;
+  };
 
   const fetchArtists = async () => {
+    setIsLoading(true);
     try {
       const accessToken = localStorage.getItem("accessToken");
       const response = await axios.get(getArtist, {
@@ -158,6 +173,8 @@ const SearchArtist = () => {
           "Content-Type": "application/json",
         },
       });
+
+      console.log("Artists response:", response.data); // Debug log
 
       if (response.data.success) {
         // Transform API data to match our UI requirements
@@ -176,79 +193,21 @@ const SearchArtist = () => {
           isVerified: artist.isVerified,
           followersCount: artist.followersCount,
           socialMedia: artist.socialMedia,
+          // Check if this artist is in the user's following list
+          isFollowing: artist.isFollowing === true, // Explicitly check for true
         }));
 
+        console.log("Transformed artists:", transformedArtists); // Debug log
         setArtists(transformedArtists);
         setFilteredArtists(transformedArtists);
       }
     } catch (error) {
       console.error("Error fetching artists:", error);
-      setError(error.message);
+      toast.error("Failed to fetch artists");
     } finally {
       setIsLoading(false);
     }
   };
-
-  // Filter and search logic
-  useEffect(() => {
-    setIsLoading(true);
-
-    const filterArtists = () => {
-      let result = [...artists];
-
-      // Search filter
-      if (debouncedSearch) {
-        result = result.filter(
-          (artist) =>
-            artist.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-            artist.location
-              .toLowerCase()
-              .includes(debouncedSearch.toLowerCase()) ||
-            artist.specialization.some((tag) =>
-              tag.toLowerCase().includes(debouncedSearch.toLowerCase())
-            )
-        );
-      }
-
-      // Genre filter
-      if (filters.genre !== "all") {
-        result = result.filter((artist) => artist.genre === filters.genre);
-      }
-
-      // Rating filter
-      if (filters.rating !== "all") {
-        result = result.filter(
-          (artist) => parseFloat(artist.rating) >= parseFloat(filters.rating)
-        );
-      }
-
-      // Experience filter
-      if (filters.experience !== "all") {
-        result = result.filter((artist) => {
-          const years = parseInt(artist.experience);
-          switch (filters.experience) {
-            case "beginner":
-              return years < 3;
-            case "intermediate":
-              return years >= 3 && years < 7;
-            case "expert":
-              return years >= 7;
-            default:
-              return true;
-          }
-        });
-      }
-
-      return result;
-    };
-
-    // Simulate API call
-    setTimeout(() => {
-      const filtered = filterArtists();
-      setFilteredArtists(filtered);
-      setIsLoading(false);
-    }, 500);
-  }, [debouncedSearch, filters]);
 
   // Pagination logic
   const totalPages = Math.ceil(filteredArtists.length / itemsPerPage);
@@ -282,10 +241,10 @@ const SearchArtist = () => {
               value={filters.genre}
               onValueChange={(value) => handleFilterChange("genre", value)}
             >
-              <SelectTrigger className="w-[160px] bg-background">
+              <SelectTrigger className="w-[160px] bg-white dark:bg-gray-950">
                 <SelectValue placeholder="Genre" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white dark:bg-gray-950">
                 {/* Add more genre options */}
                 <SelectItem value="all">All Genres</SelectItem>
                 <SelectItem value="standup">Stand-up</SelectItem>
@@ -397,8 +356,10 @@ const SearchArtist = () => {
 };
 
 const ArtistCard = ({ artist, onFollow }) => {
-  const handleFollowClick = async () => {
-    await onFollow(artist._id);
+  const handleFollowClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onFollow(artist._id, artist.isFollowing);
   };
 
   return (
@@ -485,16 +446,16 @@ const ArtistCard = ({ artist, onFollow }) => {
 
             <Button
               onClick={handleFollowClick}
-              variant={artist.isFollowing ? "secondary" : "default"}
-              disabled={artist.isFollowing} // Disable if already following
+              variant={artist.isFollowing ? "destructive" : "default"}
+              className="gap-2"
             >
               {artist.isFollowing ? (
                 <>
-                  <UserCheck className="mr-2 h-4 w-4" /> Following
+                  <UserCheck className="h-4 w-4" /> Unfollow
                 </>
               ) : (
                 <>
-                  <UserPlus className="mr-2 h-4 w-4" /> Follow
+                  <UserPlus className="h-4 w-4" /> Follow
                 </>
               )}
             </Button>
