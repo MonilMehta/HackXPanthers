@@ -34,9 +34,12 @@ const Navbar = () => {
           {/* Actions */}
           <div className="flex items-center space-x-4">
             <ThemeToggle />
-            <Lk to='/signup'><Button variant="outline">Sign Up</Button></Lk>
-            <Lk to='signin'><Button variant="default">Sign In</Button></Lk>
-            
+            <Lk to="/signup">
+              <Button variant="outline">Sign Up</Button>
+            </Lk>
+            <Lk to="signin">
+              <Button variant="default">Sign In</Button>
+            </Lk>
           </div>
         </div>
       </div>
