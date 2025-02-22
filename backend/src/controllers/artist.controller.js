@@ -208,4 +208,58 @@ const getAllArtist = async (req, res) => {
   };
   
   
+  const updateArtistDetails = asyncHandler(async (req, res) => {
+    const { 
+        fullName, 
+        stageName, 
+        bio, 
+        profile_image,
+        socialLinks, // {instagram, twitter, facebook, youtube}// {type: "audio/video", url: "link"}
+    } = req.body;
+    
+    // Check if at least one field is provided
+    if (!(fullName || stageName || bio || profile_image || socialLinks  )) {
+        throw new ApiError(400, "At least one field is required for update");
+    }
+
+    // Create update object with only provided fields
+    const updateFields = {};
+    if (fullName) updateFields.fullName = fullName;
+    if (stageName) updateFields.stageName = stageName;
+    if (bio) updateFields.bio = bio;
+    if (profile_image) updateFields.profile_image = profile_image;
+
+
+    // Handle nested social media links
+    if (socialLinks) {
+        updateFields.socialLinks = {};
+        if (socialLinks.instagram) updateFields.socialLinks.instagram = socialLinks.instagram;
+        if (socialLinks.twitter) updateFields.socialLinks.twitter = socialLinks.twitter;
+        if (socialLinks.facebook) updateFields.socialLinks.facebook = socialLinks.facebook;
+        if (socialLinks.youtube) updateFields.socialLinks.youtube = socialLinks.youtube;
+    }
+
+    // Update artist document
+    const updatedArtist = await Artist.findByIdAndUpdate(
+        req.artist?._id, // Assuming you have artist middleware setting req.artist
+        { $set: updateFields },
+        { new: true }
+    ).select("-password -refreshToken");
+
+    if (!updatedArtist) {
+        throw new ApiError(404, "Error updating artist details");
+    }
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            updatedArtist,
+            "Artist details updated successfully"
+        )
+    );
+});
+
+
+export { updateArtistDetails };
+
 export { registerArtist , loginArtist , getOneArtist , getAllArtist, viewArtist}
