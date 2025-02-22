@@ -31,6 +31,7 @@ import EmptyState from "@/components/EmptyState";
 import { getArtist } from "@/api/artist.api";
 import axios from "axios";
 import { followArtist, unfollowArtist } from "@/api/follower.api";
+import { getFollowings } from "@/api/follower.api";
 import { toast } from "sonner"; // Add this import
 
 const SearchArtist = () => {
@@ -50,6 +51,145 @@ const SearchArtist = () => {
 
   const debouncedSearch = useDebounce(searchQuery, 500);
 
+  const [followingArtists, setFollowingArtists] = useState([]);
+
+  const fetchFollowingArtists = async () => {
+    try {
+      const accessToken = localStorage.getItem("accessToken");
+      const response = await axios.get(getFollowings, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      console.log("Following Artists Response:", response.data);
+
+      // Store following artists IDs
+      if (response.data.success && response.data.data.artist) {
+        const followedArtists = response.data.data.artist;
+        // Just store the IDs for easier comparison
+        const followedIds = followedArtists.map((artist) => artist._id);
+        setFollowingArtists(followedIds);
+      }
+    } catch (error) {
+      console.error("Error fetching following artists:", error);
+    }
+  };
+
+  const fetchArtists = async () => {
+    try {
+      const accessToken = localStorage.getItem("accessToken");
+      const response = await axios.get(getArtist, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      console.log("All Artists Response:", response.data);
+
+      if (response.data.success) {
+        // Transform and mark followed artists
+        const transformedArtists = response.data.data.map((artist) => {
+          const isBeingFollowed = followingArtists.includes(artist._id);
+
+          return {
+            _id: artist._id,
+            name: artist.fullName,
+            stageName: artist.stageName,
+            image: artist.profile_image,
+            genre: artist.genre,
+            bio: artist.bio,
+            location: `${artist.address?.city || ""}, ${
+              artist.address?.state || ""
+            }`,
+            specialization: artist.genre || [],
+            experience: `${artist.yearsExperience || 0} years`,
+            isVerified: artist.isVerified,
+            followersCount: artist.followersCount,
+            socialMedia: artist.socialMedia,
+            isFollowing: isBeingFollowed,
+          };
+        });
+
+        console.log(
+          "Transformed Artists with Following Status:",
+          transformedArtists
+        );
+        setArtists(transformedArtists);
+        setFilteredArtists(transformedArtists);
+      }
+    } catch (error) {
+      console.error("Error fetching artists:", error);
+      toast.error("Failed to fetch artists");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Initialize data - First get following list, then get all artists
+  useEffect(() => {
+    const initializeData = async () => {
+      setIsLoading(true);
+      await fetchFollowingArtists(); // Get following list first
+      await fetchArtists(); // Then get all artists and mark followed ones
+    };
+    initializeData();
+  }, []);
+
+  useEffect(() => {
+    if (artists.length > 0) {
+      const filtered = filterArtists();
+      setFilteredArtists(filtered);
+    }
+  }, [debouncedSearch, filters, artists]);
+
+  const filterArtists = () => {
+    let result = [...artists];
+
+    if (debouncedSearch) {
+      result = result.filter(
+        (artist) =>
+          artist.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+          artist.location
+            .toLowerCase()
+            .includes(debouncedSearch.toLowerCase()) ||
+          artist.specialization.some((tag) =>
+            tag.toLowerCase().includes(debouncedSearch.toLowerCase())
+          )
+      );
+    }
+
+    if (filters.genre !== "all") {
+      result = result.filter((artist) =>
+        artist.specialization.includes(filters.genre)
+      );
+    }
+
+    if (filters.rating !== "all") {
+      result = result.filter(
+        (artist) => parseFloat(artist.rating) >= parseFloat(filters.rating)
+      );
+    }
+
+    if (filters.experience !== "all") {
+      result = result.filter((artist) => {
+        const years = parseInt(artist.experience);
+        switch (filters.experience) {
+          case "beginner":
+            return years < 3;
+          case "intermediate":
+            return years >= 3 && years < 7;
+          case "expert":
+            return years >= 7;
+          default:
+            return true;
+        }
+      });
+    }
+
+    return result;
+  };
+
   const handleFollow = async (artistId, isCurrentlyFollowing) => {
     try {
       const accessToken = localStorage.getItem("accessToken");
@@ -58,7 +198,6 @@ const SearchArtist = () => {
         return;
       }
 
-      // Use the correct endpoint based on current following status
       const endpoint = isCurrentlyFollowing ? unfollowArtist : followArtist;
 
       const response = await axios.post(
@@ -73,7 +212,12 @@ const SearchArtist = () => {
       );
 
       if (response.data.success) {
-        // Update both artists and filteredArtists state
+        setFollowingArtists((prev) =>
+          isCurrentlyFollowing
+            ? prev.filter((id) => id !== artistId)
+            : [...prev, artistId]
+        );
+
         const updateArtists = (prevArtists) =>
           prevArtists.map((artist) =>
             artist._id === artistId
@@ -98,118 +242,6 @@ const SearchArtist = () => {
     }
   };
 
-  // Separate useEffect for initial data fetch
-  useEffect(() => {
-    fetchArtists();
-  }, []); // This will run only once when component mounts
-
-  // Separate useEffect for filtering
-  useEffect(() => {
-    if (artists.length > 0) {
-      // Only filter if we have artists
-      const filtered = filterArtists();
-      setFilteredArtists(filtered);
-    }
-  }, [debouncedSearch, filters, artists]); // Add artists to dependency array
-
-  const filterArtists = () => {
-    let result = [...artists];
-
-    // Search filter
-    if (debouncedSearch) {
-      result = result.filter(
-        (artist) =>
-          artist.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-          artist.location
-            .toLowerCase()
-            .includes(debouncedSearch.toLowerCase()) ||
-          artist.specialization.some((tag) =>
-            tag.toLowerCase().includes(debouncedSearch.toLowerCase())
-          )
-      );
-    }
-
-    // Genre filter
-    if (filters.genre !== "all") {
-      result = result.filter((artist) =>
-        artist.specialization.includes(filters.genre)
-      );
-    }
-
-    // Rating filter
-    if (filters.rating !== "all") {
-      result = result.filter(
-        (artist) => parseFloat(artist.rating) >= parseFloat(filters.rating)
-      );
-    }
-
-    // Experience filter
-    if (filters.experience !== "all") {
-      result = result.filter((artist) => {
-        const years = parseInt(artist.experience);
-        switch (filters.experience) {
-          case "beginner":
-            return years < 3;
-          case "intermediate":
-            return years >= 3 && years < 7;
-          case "expert":
-            return years >= 7;
-          default:
-            return true;
-        }
-      });
-    }
-
-    return result;
-  };
-
-  const fetchArtists = async () => {
-    setIsLoading(true);
-    try {
-      const accessToken = localStorage.getItem("accessToken");
-      const response = await axios.get(getArtist, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      console.log("Artists response:", response.data); // Debug log
-
-      if (response.data.success) {
-        // Transform API data to match our UI requirements
-        const transformedArtists = response.data.data.map((artist) => ({
-          _id: artist._id,
-          name: artist.fullName,
-          stageName: artist.stageName,
-          image: artist.profile_image,
-          genre: artist.genre,
-          bio: artist.bio,
-          location: `${artist.address?.city || ""}, ${
-            artist.address?.state || ""
-          }`,
-          specialization: artist.genre || [],
-          experience: `${artist.yearsExperience || 0} years`,
-          isVerified: artist.isVerified,
-          followersCount: artist.followersCount,
-          socialMedia: artist.socialMedia,
-          // Check if this artist is in the user's following list
-          isFollowing: artist.isFollowing === true, // Explicitly check for true
-        }));
-
-        console.log("Transformed artists:", transformedArtists); // Debug log
-        setArtists(transformedArtists);
-        setFilteredArtists(transformedArtists);
-      }
-    } catch (error) {
-      console.error("Error fetching artists:", error);
-      toast.error("Failed to fetch artists");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Pagination logic
   const totalPages = Math.ceil(filteredArtists.length / itemsPerPage);
   const currentArtists = filteredArtists.slice(
     (currentPage - 1) * itemsPerPage,
@@ -217,13 +249,12 @@ const SearchArtist = () => {
   );
 
   const handleFilterChange = (key, value) => {
-    setCurrentPage(1); // Reset to first page when filters change
+    setCurrentPage(1);
     setFilters((prev) => ({ ...prev, [key]: value }));
   };
 
   return (
     <div className="min-h-screen">
-      {/* Fixed Search Header - Made sticky with solid background */}
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b pb-4">
         <div className="max-w-7xl mx-auto space-y-4">
           <div className="relative">
@@ -245,7 +276,6 @@ const SearchArtist = () => {
                 <SelectValue placeholder="Genre" />
               </SelectTrigger>
               <SelectContent className="bg-white dark:bg-gray-950">
-                {/* Add more genre options */}
                 <SelectItem value="all">All Genres</SelectItem>
                 <SelectItem value="standup">Stand-up</SelectItem>
                 <SelectItem value="improv">Improv</SelectItem>
@@ -254,11 +284,8 @@ const SearchArtist = () => {
                 <SelectItem value="observational">Observational</SelectItem>
               </SelectContent>
             </Select>
-
-            {/* Similar updates for other filters */}
           </div>
 
-          {/* Results count */}
           <div className="flex justify-between items-center">
             <p className="text-sm text-muted-foreground">
               Found {filteredArtists.length} artists
@@ -267,12 +294,9 @@ const SearchArtist = () => {
         </div>
       </div>
 
-      {/* Content Container with Fixed Width */}
       <div className="max-w-7xl mx-auto py-6">
-        {/* Artists Grid with Consistent Layout */}
         <div className="grid md:grid-cols-2 gap-6 min-h-[400px]">
           {isLoading ? (
-            // Show same number of skeletons as items per page
             Array(itemsPerPage)
               .fill(0)
               .map((_, i) => <ArtistCardSkeleton key={`skeleton-${i}`} />)
@@ -285,7 +309,6 @@ const SearchArtist = () => {
               />
             ))
           ) : (
-            // Empty state with full width
             <div className="col-span-full flex items-center justify-center">
               <EmptyState
                 title="No artists found"
@@ -315,7 +338,6 @@ const SearchArtist = () => {
           )}
         </div>
 
-        {/* Pagination with Consistent Position */}
         {totalPages > 1 && (
           <div className="flex justify-center gap-2 mt-8 sticky bottom-4">
             <div className="bg-background/80 backdrop-blur-md p-2 rounded-lg shadow-lg">
@@ -369,7 +391,6 @@ const ArtistCard = ({ artist, onFollow }) => {
       transition={{ duration: 0.3 }}
     >
       <Card className="overflow-hidden hover:shadow-lg transition-all">
-        {/* Card Header with Cover Image */}
         <div className="relative h-40 bg-gradient-to-r from-primary/20 to-primary/10">
           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background/90" />
           {artist.isVerified && (
@@ -379,7 +400,6 @@ const ArtistCard = ({ artist, onFollow }) => {
           )}
         </div>
 
-        {/* Profile Section */}
         <div className="p-6 -mt-20 relative space-y-6">
           <div className="flex gap-4 items-end">
             <div className="relative">
@@ -403,7 +423,6 @@ const ArtistCard = ({ artist, onFollow }) => {
             </div>
           </div>
 
-          {/* Genre Tags */}
           <div className="flex flex-wrap gap-2">
             {artist.specialization.map((genre) => (
               <Badge key={genre} variant="secondary">
@@ -412,12 +431,10 @@ const ArtistCard = ({ artist, onFollow }) => {
             ))}
           </div>
 
-          {/* Bio */}
           <p className="text-sm text-muted-foreground line-clamp-2">
             {artist.bio}
           </p>
 
-          {/* Social Links & Actions */}
           <div className="flex items-center justify-between pt-4 border-t">
             <div className="flex gap-2">
               {artist.socialMedia?.instagram && (
@@ -466,11 +483,8 @@ const ArtistCard = ({ artist, onFollow }) => {
   );
 };
 
-// Loading skeleton component
 const ArtistCardSkeleton = () => (
   <Card className="overflow-hidden h-[420px]">
-    {" "}
-    {/* Fixed height */}
     <div className="relative h-32 bg-muted" />
     <div className="p-6 pt-0">
       <div className="flex gap-4 -mt-12 relative">
