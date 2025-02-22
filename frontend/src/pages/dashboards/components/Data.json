@@ -51,6 +51,11 @@
       "title": "Performance Stats",
       "icon": "BarChart3",
       "path": "/artist/stats"
+    },
+    {
+      "title": "Add post",
+      "icon": "BarChart3",
+      "path": "/artist/addpost"
     }
   ],
   "ADMIN": [

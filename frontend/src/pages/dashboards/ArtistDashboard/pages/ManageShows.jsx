@@ -1,11 +1,7 @@
-import React from 'react'
+import React from "react";
 
 const ManageShows = () => {
-  return (
-    <div>
-      
-    </div>
-  )
-}
+  return <div></div>;
+};
 
-export default ManageShows
+export default ManageShows;

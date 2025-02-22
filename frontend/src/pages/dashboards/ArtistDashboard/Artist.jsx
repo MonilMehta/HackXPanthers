@@ -6,6 +6,7 @@ import Proposal from "./pages/Proposal";
 import Stats from "./pages/Stats";
 import Profile from "./pages/Profile";
 import ArtistDashboard from "./pages/ArtistDashboard";
+import Addpost from "./pages/Addpost";
 const Artist = () => {
   return (
     <div className="flex h-screen bg-background">
@@ -16,6 +17,7 @@ const Artist = () => {
         <Route path="venues" element={<Venue />} />
         <Route path="proposals" element={<Proposal />} />
         <Route path="stats" element={<Stats />} />
+        <Route path="addpost" element={<Addpost />} />
       </Routes>
     </div>
   );
