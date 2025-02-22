@@ -33,6 +33,7 @@ import adminRouter from './routes/admin.routes.js';
 import ticket_bookRouter from './routes/ticket_book.routes.js';
 import reviewRouter from './routes/review.routes.js';
 import whistlistRouter from './routes/whistlist.routes.js';
+import postRouter from './routes/post.routes.js';
 
 // declare routes
 app.use("/api/users", userRouter)
@@ -45,5 +46,6 @@ app.use("/api/admin", adminRouter)
 app.use("/api/ticket_book", ticket_bookRouter)
 app.use("/api/reviews", reviewRouter)
 app.use("/api/whistlist", whistlistRouter)
+app.use("/api/posts", postRouter)
 
 export { app }
