@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import * as Icons from "lucide-react";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import menuData from "./Data.json";
 import { cn } from "@/lib/utils";
 
@@ -85,6 +86,7 @@ const Sidebar = () => {
   const location = useLocation();
   const [userRole, setUserRole] = useState("");
   const [menuItems, setMenuItems] = useState([]);
+  const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
     const role = localStorage.getItem("userRole");
@@ -95,6 +97,10 @@ const Sidebar = () => {
     setUserRole(role);
     setMenuItems(menuData[role] || []);
   }, [navigate]);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", darkMode);
+  }, [darkMode]);
 
   const handleLogout = () => {
     localStorage.removeItem("userRole");
@@ -140,8 +146,24 @@ const Sidebar = () => {
         </ul>
       </nav>
 
+      {/* Theme Toggle */}
+      <div className="border-t border-primary/10">
+        <div className="px-4 flex items-center gap-2">
+          <div className="p-2 rounded-lg bg-primary/5">
+          <ThemeToggle
+          checked={darkMode}
+          onClick={() => setDarkMode((prev) => !prev)}
+        />
+          </div>
+          <span className="font-medium text-sm text-muted-foreground">Theme</span>
+          <div className="ml-auto">
+            
+          </div>
+        </div>
+      </div>
+
       {/* Logout button with hover effect */}
-      <div className="border-t border-primary/10 pt-4">
+      <div className="border-t border-primary/10 ml-2 ">
         <button
           onClick={handleLogout}
           className="group relative flex items-center space-x-2 px-4 py-2 w-full rounded-lg text-red-500 overflow-hidden"

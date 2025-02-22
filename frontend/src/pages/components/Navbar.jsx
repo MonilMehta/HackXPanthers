@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/navigation-menu";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { Link as Lk } from "react-router-dom";
+import logo from '../../assets/logo.svg';
 
 const Navbar = () => {
   const [darkMode, setDarkMode] = useState(false);
@@ -22,7 +23,9 @@ const Navbar = () => {
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <div className="font-bold text-2xl">ComedyConnect</div>
+          <div className="font-bold text-2xl">
+          <img src={logo} alt="Logo" className="h-24 w-auto" /> 
+          </div>
 
           {/* Navigation Links */}
           <NavigationMenu>

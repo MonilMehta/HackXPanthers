@@ -2,6 +2,8 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.models.js";
+import { Artist } from "../models/artist.models.js";
+import {Venue} from "../models/venue.models.js";
 import jwt from "jsonwebtoken";
 
 const generateAccessAndRefreshTokens = async(userId) => {
@@ -221,6 +223,35 @@ const getCurrentUser = asyncHandler(async ( req, res ) => {
     )
 })
 
+const getAllUsers = asyncHandler(async (req, res) => {
+    const users = await User.find()
+        .select("-password -refreshToken")
+        .lean() // Convert to plain JavaScript objects
+        .then(users => users.map(user => ({...user, userType: 'customer'})));
+
+    const artists = await Artist.find()
+        .select("-password -refreshToken")
+        .lean()
+        .then(artists => artists.map(artist => ({...artist, userType: 'artist'})));
+
+    const venues = await Venue.find()
+        .select("-password -refreshToken")
+        .lean()
+        .then(venues => venues.map(venue => ({...venue, userType: 'venue'})));
+
+    const allUsers = [...users, ...artists, ...venues];
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                allUsers,
+                "All users fetched successfully"
+            )
+        )
+});
+
 const updateAccountDetails = asyncHandler( async ( req, res ) => {
 
     const { fullName, email, phone_no, gender, profile_image, address } = req.body;
@@ -258,16 +289,45 @@ const updateAccountDetails = asyncHandler( async ( req, res ) => {
         )
     )
 })
-const getAllUsers = async (req, res, next) => {
-    try {
-        const users = await User.find().select("-password -refreshToken"); // Exclude sensitive fields
-
-        res.status(200).json(
-            new ApiResponse(200, users, "All users fetched successfully")
-        );
-    } catch (error) {
-        next(new ApiError(500, error.message));
+const getUserDetails = asyncHandler(async (req, res) => {
+    const { userId } = req.params
+    console.log('userId : ',userId)
+    const user = await User.findById(userId).select("-password -refreshToken")
+    if (user) {
+        return res.status(200).json(
+            new ApiResponse(
+                200,
+                { ...user.toObject(), userType: 'customer' },
+                "User details fetched successfully"
+            )
+        )
     }
-};
 
-export { getAllUsers, registerUser , loginUser, logoutUser, refreshAccessToken, changeCurrentPassword, getCurrentUser, updateAccountDetails }
+    // If not found, try Artist collection
+    const artist = await Artist.findById(userId).select("-password -refreshToken")
+    if (artist) {
+        return res.status(200).json(
+            new ApiResponse(
+                200,
+                { ...artist.toObject(), userType: 'artist' },
+                "Artist details fetched successfully"
+            )
+        )
+    }
+
+    // If not found, try Venue collection
+    const venue = await Venue.findById(userId).select("-password -refreshToken")
+    if (venue) {
+        return res.status(200).json(
+            new ApiResponse(
+                200,
+                { ...venue.toObject(), userType: 'venue' },
+                "Venue details fetched successfully"
+            )
+        )
+    }
+
+    // If not found in any collection
+    throw new ApiError(404, "User not found")
+})
+export { registerUser, loginUser, logoutUser, refreshAccessToken, changeCurrentPassword, getCurrentUser, getAllUsers, updateAccountDetails, getUserDetails }

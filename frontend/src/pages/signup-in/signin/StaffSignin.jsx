@@ -53,12 +53,12 @@ function StaffSignin() {
     };
 
     try {
-      const response = await axios.post(apiMap[formData.userType], {
-        email: formData.email,
-        password: formData.password,
-      });
-      const { accessToken } = response.data.data;
-      localStorage.setItem("accessToken", accessToken);
+      // const response = await axios.post(apiMap[formData.userType], {
+      //   email: formData.email,
+      //   password: formData.password,
+      // });
+      // const { accessToken } = response.data.data;
+      // localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("userRole", roleMap[formData.userType]);
 
       const routeMap = {
