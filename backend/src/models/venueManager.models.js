@@ -34,10 +34,6 @@ const venueManagerSchema = new Schema(
             type: Number,
             required: true,
         },
-        date_of_birth:{
-            type: String,
-            required: true,
-        },
         address: {
             street: { type: String, trim: true },
             city: { type: String, trim: true },

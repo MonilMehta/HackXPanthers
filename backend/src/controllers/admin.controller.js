@@ -6,7 +6,7 @@ import jwt from "jsonwebtoken";
 
 const generateAccessAndRefreshTokens = async(userId) => {
     try {
-        const user = await User.findById(userId)
+        const user = await Admin.findById(userId)
         const accessToken = user.generateAccessToken()
         const refreshToken = user.generateRefreshToken()
 
@@ -30,7 +30,7 @@ const registerAdmin = asyncHandler( async ( req, res ) => {
     }
 
     const existingAdmin = await Admin.findOne({
-        $or: [{ username }, { email }, { phone_no }]
+        $or: [{ username }, { email }]
     })
     if(existingAdmin){
         throw new ApiError(409, "User with email or username or Phone Number already exists")
@@ -69,7 +69,7 @@ const loginAdmin = asyncHandler( async ( req, res ) => {
     }
 
     const user = await Admin.findOne({
-        $or: [{username}, {email}, {phone_no}]
+        $or: [{username}, {email}]
     })
     if(!user){
         throw new ApiError(404, "User does not exist");

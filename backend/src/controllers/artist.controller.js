@@ -20,9 +20,9 @@ const generateAccessAndRefreshTokens = async(artistId) => {
 } 
 
 const registerArtist = asyncHandler( async ( req, res ) => {
-  const {fullName, username, email, phone_no, age, date_of_birth, address, profile_image, gender, password, stageName, bio, yearsExperience, genre, socialMedia} = req.body;
+  const {fullName, username, email, phone_no, age,  address, profile_image, gender, password, stageName, bio, yearsExperience, genre, socialMedia} = req.body;
 
-  if([username, email, fullName, phone_no, date_of_birth, gender, password].some((field) => field?.trim() === '')) {
+  if([username, email, fullName, phone_no, gender, password].some((field) => field?.trim() === '')) {
         throw new ApiError(400, "All fields are required")
     }
 
@@ -33,7 +33,7 @@ const registerArtist = asyncHandler( async ( req, res ) => {
       throw new ApiError(409, "User with email or username or Phone Number already exists")
   }
   const artist = await Artist.create({
-      username: username.toLowerCase(), fullName, email, phone_no, age, date_of_birth, address, profile_image, gender, password, stageName, bio, yearsExperience, genre, socialMedia
+      username: username.toLowerCase(), fullName, email, phone_no, age, address, profile_image, gender, password, stageName, bio, yearsExperience, genre, socialMedia
   })
 
   const createdUser = await Artist.findById(artist._id).select(
