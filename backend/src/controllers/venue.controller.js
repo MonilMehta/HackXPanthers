@@ -1,5 +1,5 @@
 import { Venue } from "../models/venue.models.js";
-import { Event } from "../models/event.models.js";
+import {Event} from "../models/event.models.js";
 import { Admin } from "../models/admin.models.js";
 import mongoose from "mongoose";
 import crypto from "crypto";
@@ -211,18 +211,6 @@ const getAllVenues = async (req, res) => {
     }
 };
 
-// Controller to get pending venues for admin approval
-const getPendingVenues = async (req, res) => {
-    try {
-        const pendingVenues = await Venue.find({ status: "pending_approval" })
-            .populate("managerId", "name email");
-
-        res.status(200).json({ success: true, data: pendingVenues });
-    } catch (error) {
-        console.error("Error fetching pending venues for admin:", error);
-        res.status(500).json({ success: false, message: "Server error" });
-    }
-};
 
 const bookVenue = async (req, res) => {
     const { eventId, venueId } = req.body;
@@ -282,4 +270,4 @@ const bookVenue = async (req, res) => {
     }
 };
 
-export { getSimilarVenues, registerVenue, approveVenueByAdmin, verifyVenue, getAllVenues, getPendingVenues, bookVenue };
+export { getSimilarVenues, registerVenue, approveVenueByAdmin, verifyVenue, getAllVenues, bookVenue };
