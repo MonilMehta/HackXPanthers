@@ -1,5 +1,27 @@
 import mongoose, { Schema } from "mongoose";
 
+const generateSeats = (section) => {
+    const seats = [];
+    const totalSeats = section.rows * section.columns;
+    
+    for (let i = 0; i < totalSeats; i++) {
+        const row = Math.floor(i / section.columns) + 1;
+        const column = (i % section.columns) + 1;
+        const seatNumber = i + 1;
+        
+        seats.push({
+            seatNumber: seatNumber.toString(),
+            row,
+            column,
+            isBooked: false,
+            status: "available",
+            bookedBy: null
+        });
+    }
+    
+    return seats;
+};
+
 const seatSchema = new Schema(
     {
         name: {
@@ -137,5 +159,18 @@ const venueSchema = new Schema(
     },
     { timestamps: true }
 );
+
+venueSchema.pre('save', function(next) {
+    if (this.isNew || this.isModified('seatLayout')) {
+        this.seatLayout = this.seatLayout.map(section => ({
+            ...section,
+            seats: generateSeats({
+                rows: section.rows,
+                columns: section.columns
+            })
+        }));
+    }
+    next();
+});
 
 export const Venue = mongoose.model("Venue", venueSchema);

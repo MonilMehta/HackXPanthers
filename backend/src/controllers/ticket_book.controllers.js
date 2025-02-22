@@ -1,7 +1,7 @@
 import { Event } from "../models/event.models.js";
 import { Venue } from "../models/venue.models.js";
 import { Ticket } from "../models/ticket.models.js"; // Add this import
-// import { v4 as uuidv4 } from 'uuid'; // Add this for generating unique IDs
+import { v4 as uuidv4 } from 'uuid'; // Add this for generating unique IDs
 
 const bookTickets = async (req, res) => {
     try {
@@ -27,14 +27,17 @@ const bookTickets = async (req, res) => {
             });
         }
 
-        // 2. Get venue details
-        const venue = await Venue.findById(event.venueId);
+        // 2. Get venue details with explicit seat layout population
+        const venue = await Venue.findById(event.venueId).lean();
         if (!venue) {
             return res.status(404).json({ 
                 success: false, 
                 message: "Venue not found" 
             });
         }
+
+        // Debug log
+        console.log("Venue Seat Layout:", JSON.stringify(venue.seatLayout, null, 2));
 
         // 3. Validate and process each seat
         const bookedSeatsData = [];
@@ -51,21 +54,52 @@ const bookTickets = async (req, res) => {
                 });
             }
 
-            // Check if seat exists and is available
-            const seatDetails = seatSet.seats.find(s => s.seatNumber === seat.seatNumber);
-            if (!seatDetails || seatDetails.isBooked) {
-                return res.status(400).json({ 
-                    success: false, 
-                    message: `Seat ${seat.seatNumber} is not available` 
+            // Calculate seat index based on seat number
+            const seatNumber = parseInt(seat.seatNumber);
+            if (isNaN(seatNumber) || seatNumber < 1) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Invalid seat number: ${seat.seatNumber}`
                 });
             }
 
-            // Find price for this seat set
-            const seatPrice = event.seatPricing.find(sp => sp.seatSetName === seat.seatSetName);
+            // Convert seat number to row and column
+            const row = Math.ceil(seatNumber / seatSet.columns);
+            const column = ((seatNumber - 1) % seatSet.columns) + 1;
+            
+            // Convert numeric row to letter (A, B, C, etc.)
+            const rowLetter = String.fromCharCode(64 + row); // 1 -> A, 2 -> B, etc.
+
+            // Validate seat exists within bounds
+            if (row > seatSet.rows || column > seatSet.columns) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Seat ${seatNumber} is out of bounds for ${seat.seatSetName}`
+                });
+            }
+
+            // Check if seat is already booked
+            const seatIndex = (row - 1) * seatSet.columns + (column - 1);
+            const seatDetails = seatSet.seats[seatIndex];
+
+            console.log(`Checking seat: ${seatNumber}, Row: ${row}, Column: ${column}, Index: ${seatIndex}`);
+            console.log("Seat Details:", seatDetails);
+
+            if (!seatDetails || seatDetails.isBooked) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Seat ${seat.seatNumber} in ${seat.seatSetName} is not available`
+                });
+            }
+
+            // Find price for this seat set with better error handling
+            const seatPrice = event.seatPricing?.find(sp => sp.seatSetName === seat.seatSetName);
             if (!seatPrice) {
+                console.log("Available seat pricing:", event.seatPricing);
+                console.log("Requested seat set:", seat.seatSetName);
                 return res.status(400).json({ 
                     success: false, 
-                    message: `Price not set for seat set: ${seat.seatSetName}` 
+                    message: `Price not set for seat set: ${seat.seatSetName}. Available seat sets: ${event.seatPricing.map(sp => sp.seatSetName).join(', ')}` 
                 });
             }
 
@@ -80,7 +114,7 @@ const bookTickets = async (req, res) => {
                 userId,
                 venueId: event.venueId,
                 seatNumber: seatDetails.seatNumber,
-                row: seatDetails.row,
+                row: rowLetter, // Use the letter row instead of numeric
                 column: seatDetails.column,
                 seatSetName: seat.seatSetName,
                 price: seatPrice.price,

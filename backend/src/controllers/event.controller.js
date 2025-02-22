@@ -17,6 +17,7 @@ const createEvent = async (req, res) => {
             proposedPrice,
             percentageCommission,
             venueId,
+            seatPricing,
             startTime,
             endTime,
         } = req.body;
@@ -45,6 +46,7 @@ const createEvent = async (req, res) => {
             proposedPrice,
             percentageCommission,
             venueId,
+            seatPricing,
             startTime,
             endTime,
             status: "pending_approval",

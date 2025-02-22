@@ -110,12 +110,14 @@ const eventSchema = new Schema(
             {
                 seatSetName: {
                     type: String,
-                    required: true 
+                    required: [true, "Seat set name is required"]
                 }, 
                 price: { 
                     type: Number, 
-                    required: true
-                }
+                    required: [true, "Price is required"],
+                    min: [0, "Price cannot be negative"]
+                },
+                _id: false
             }
         ],
         bookedSeats: [
