@@ -1,8 +1,8 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
-import { Artist } from "../models/artist.models.js";
-
+import {Artist} from "../models/artist.models.js";
+import { Followers  } from "../models/follower.models.js";
 const generateAccessAndRefreshTokens = async(artistId) => {
     try {
         const artist = await Artist.findById(artistId)
@@ -112,42 +112,68 @@ const registerArtist = asyncHandler( async ( req, res ) => {
 
 })
 
-
 const getOneArtist = async (req, res) => {
-    try {
-      const { artistId } = req.body; // Get artist ID from URL parameters
-  
-      // Find the artist by ID and exclude sensitive fields
-      const artistData = await Artist.findById(artistId)
-        .populate({
-          path: "Reviews",
-          select: "-__v" // Exclude version field from Reviews
-        })
-        .select("-password -refreshToken -__v"); // Exclude sensitive fields
-  
-      // If artist is not found
-      if (!artistData) {
-        return res.status(404).json({ success: false, message: "Artist not found" });
-      }
-  
-      res.status(200).json({ success: true, data: artistData });
-    } catch (error) {
-      console.error("Error fetching artist:", error);
-      res.status(500).json({ success: false, message: "Server error" });
+  try {
+    const { artistId } = req.body; // Get artist ID from request body
+
+    // Find the artist by ID and exclude sensitive fields
+    const artistData = await Artist.findById(artistId)
+      .populate({
+        path: "Reviews",
+        select: "-__v", // Exclude version field from Reviews
+      })
+      .select("-password -refreshToken -__v"); // Exclude sensitive fields
+
+    // If artist is not found
+    if (!artistData) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Artist not found" });
     }
-  };
+
+    // Count the number of followers for the artist
+    const followersCount = await Followers.countDocuments({
+      artist: artistId,
+    });
+
+    // Attach followersCount to artistData
+    const responseData = {
+      ...artistData.toObject(),
+      followersCount,
+    };
+
+    res.status(200).json({ success: true, data: responseData });
+  } catch (error) {
+    console.error("Error fetching artist:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
   
 
-  const getAllArtist = async (req, res) => {
+const getAllArtist = async (req, res) => {
     try {
       const artists = await Artist.find()
         .populate({
           path: "Reviews",
-          select: "-__v" // Exclude version field from Reviews
+          select: "-__v", // Exclude version field from Reviews
         })
         .select("-password -refreshToken -__v"); // Exclude sensitive and version fields
   
-      res.status(200).json({ success: true, data: artists });
+      // Add followers count for each artist
+      const artistsWithFollowers = await Promise.all(
+        artists.map(async (artist) => {
+          const followersCount = await Followers.countDocuments({
+            artist: artist._id,
+          });
+          return {
+            ...artist.toObject(),
+            followersCount,
+          };
+        })
+      );
+  
+      res.status(200).json({ success: true, data: artistsWithFollowers });
     } catch (error) {
       console.error("Error fetching artists:", error);
       res.status(500).json({ success: false, message: "Server error" });
@@ -162,16 +188,31 @@ const getOneArtist = async (req, res) => {
       const artistDetails = await Artist.findById(artistId)
         .populate({
           path: "Reviews",
-          select: "-__v" // Exclude version field from Reviews
+          select: "-__v", // Exclude version field from Reviews
         })
-        .select("fullname username age gender profile_image stageName bio yearsExperience genre socialMedia Reviews");
+        .select(
+          "fullname username age gender profile_image stageName bio yearsExperience genre socialMedia Reviews"
+        );
   
       // If artist is not found
       if (!artistDetails) {
-        return res.status(404).json({ success: false, message: "Artist not found" });
+        return res
+          .status(404)
+          .json({ success: false, message: "Artist not found" });
       }
   
-      res.status(200).json({ success: true, data: artistDetails });
+      // Count the number of followers for the artist
+      const followersCount = await Followers.countDocuments({
+        artist: artistId,
+      });
+  
+      // Attach followersCount to artistDetails
+      const responseData = {
+        ...artistDetails.toObject(),
+        followersCount,
+      };
+  
+      res.status(200).json({ success: true, data: responseData });
     } catch (error) {
       console.error("Error fetching artist details:", error);
       res.status(500).json({ success: false, message: "Server error" });

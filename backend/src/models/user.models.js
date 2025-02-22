@@ -34,6 +34,10 @@ const userSchema = new Schema(
             type: Number,
             required: true,
         },
+        gender:{
+            type: String,
+            required: true
+        },
         address: {
             street: { type: String, trim: true },
             city: { type: String, trim: true },
@@ -43,8 +47,7 @@ const userSchema = new Schema(
             longitude: { type: String }
         },
         profile_image: {
-            type: String, //image url
-            required: true,
+            type: String,
         },
         searchHistory: [
             {
@@ -99,5 +102,6 @@ userSchema.methods.generateRefreshToken = function () {
         }
     );
 };
+
 
 export const User = mongoose.model("User", userSchema);

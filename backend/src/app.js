@@ -25,7 +25,14 @@ app.use(cookieParser())
 // import routes
 import userRouter from './routes/user.routes.js';
 import artistRouter from './routes/artist.routes.js';
+import followersRouter from './routes/followers.routes.js';
+import venueRouter from './routes/venue.routes.js';
+import eventRouter from './routes/event.routes.js';
 // declare routes
 app.use("/api/users", userRouter)
 app.use("/api/artists", artistRouter)
+app.use("/api/followers", followersRouter)
+app.use("/api/venues", venueRouter)
+app.use("/api/events", eventRouter)
+
 export { app }
