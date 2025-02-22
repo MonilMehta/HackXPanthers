@@ -1,15 +1,43 @@
 import mongoose, { Schema } from "mongoose";
 
-const seatSchema = new Schema({
-    seatNumber: { type: String, required: true }, // e.g., A1, B3
-    row: { type: String, required: true }, // e.g., A, B, C (for structured seating)
-    column: { type: Number, required: true }, // e.g., 1, 2, 3 (seat position in row)
-    seatType: { type: String, enum: ["VIP", "Standard", "Balcony"], required: true },
-    price: { type: Number, required: true }, // Price for this seat
-    isBooked: { type: Boolean, default: false }, // Check if the seat is booked
-    bookedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null }, // User who booked the seat
-    status: { type: String, enum: ["available", "pending", "booked"], default: "available" },
-  });
+const seatSchema = new Schema(
+    {
+        seatNumber: {
+            type: String, 
+            required: true 
+        },
+        row: {
+            type: String, 
+            required: true 
+        },
+        column: { 
+            type: Number, 
+            required: true 
+        }, 
+        seatType: { 
+            type: String, 
+            enum: ["VIP", "Standard", "Balcony"], 
+            required: true 
+        },
+        price: { 
+            type: Number, 
+            required: true 
+        }, 
+        isBooked: { 
+            type: Boolean, 
+            default: false 
+        }, 
+        bookedBy: { 
+            type: mongoose.Schema.Types.ObjectId, 
+            ref: "User", default: null 
+        },
+        status: { 
+            type: String, 
+            enum: ["available", "pending", "booked"], 
+            default: "available" 
+        },
+    }
+);
 
 const venueSchema = new Schema(
     {
