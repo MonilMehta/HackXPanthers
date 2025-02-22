@@ -7,7 +7,7 @@ import Profile from "./pages/Profile";
 import { Route,Routes } from "react-router-dom";
 const Customer = () => {
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex min-h-screen bg-background">
       <Sidebar />
       <Routes>
         <Route path="/" element={<CustomerDashboard />} />

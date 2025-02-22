@@ -1,5 +1,6 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
+import { ArrowRight } from "lucide-react";
 
 const FeaturedEvents = ({ events }) => {
   return (
@@ -12,22 +13,16 @@ const FeaturedEvents = ({ events }) => {
               <img 
                 src={event.image}
                 alt={event.title}
-                className="w-full h-48 object-cover"
+                className="w-full h-64 object-cover"
               />
-              <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-card/90 to-transparent">
-                <h3 className="text-xl font-semibold text-foreground">{event.title}</h3>
-                <p className="text-muted-foreground">{event.comedian}</p>
-              </div>
-            </div>
-            <div className="p-4">
-              <div className="flex justify-between items-center">
+              <div className="absolute bottom-0 left-0 right-0 bg-black/60 p-3 flex justify-between items-center">
                 <div>
-                  <p className="text-primary font-bold">{event.price}</p>
-                  <p className="text-sm text-muted-foreground">{event.date} • {event.venue}</p>
+                  <h3 className="text-lg font-bold text-white">{event.title}</h3>
+                  <p className="text-xs text-white">{event.comedian} • {event.date} • {event.venue}</p>
                 </div>
-                <Button className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-accent-hover transition-colors">
-                  Book Now
-                </Button>
+                <button className="bg-yellow-400 hover:bg-yellow-500 text-white rounded-full p-2">
+                  <ArrowRight className="h-4 w-4" />
+                </button>
               </div>
             </div>
           </div>

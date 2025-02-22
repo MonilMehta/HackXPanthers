@@ -41,12 +41,12 @@ const CustomerDashboard = () => {
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
-  // Combine featured + near you for searching demo (if needed)
+  // Filter each field individually
   const allEvents = [...sampleFeaturedEvents, ...sampleNearYouEvents];
-  const filteredResults = allEvents.filter(
-    e => (e.title + (e.comedian || '') + e.location)
-      .toLowerCase()
-      .includes(debouncedQuery.toLowerCase())
+  const filteredResults = allEvents.filter(e => 
+    (e.title?.toLowerCase().includes(debouncedQuery.toLowerCase()) ||
+     (e.comedian && e.comedian.toLowerCase().includes(debouncedQuery.toLowerCase())) ||
+     e.location?.toLowerCase().includes(debouncedQuery.toLowerCase()))
   );
 
   return (

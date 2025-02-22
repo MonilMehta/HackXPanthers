@@ -1,6 +1,7 @@
 import React from 'react';
 import Slider from 'react-slick';
 import { Button } from "@/components/ui/button";
+import { ArrowRight } from "lucide-react";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
@@ -18,18 +19,20 @@ const EventCarousel = ({ events }) => {
       <div className="max-w-6xl mx-auto px-4">
         <Slider {...settings} className="venue-carousel">
           {events.map((event) => (
-            <div key={event.id} className="relative h-96 rounded-xl overflow-hidden show-card">
+            <div key={event.id} className="relative h-96 rounded-xl overflow-hidden">
               <img 
                 src={event.image}
                 alt={event.title}
-                className="w-full h-96 object-cover"
+                className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 flex flex-col items-center justify-center p-6 bg-gradient-to-t from-black/70 to-transparent">
-                <h2 className="text-4xl font-bold mb-2 text-white">{event.title}</h2>
-                <p className="text-xl mb-4 text-white">{event.location} • {event.date}</p>
-                <Button className="px-6 py-2 rounded-full font-semibold hover:bg-accent-hover transition-colors">
-                  Book Tickets
-                </Button>
+              <div className="absolute bottom-0 left-0 right-0 bg-black/60 p-4 flex justify-between items-center">
+                <div>
+                  <h2 className="text-xl font-bold text-white">{event.title}</h2>
+                  <p className="text-sm text-white">{event.location} • {event.date}</p>
+                </div>
+                <button className="bg-yellow-400 hover:bg-yellow-500 text-white rounded-full p-2">
+                  <ArrowRight className="h-4 w-4" />
+                </button>
               </div>
             </div>
           ))}

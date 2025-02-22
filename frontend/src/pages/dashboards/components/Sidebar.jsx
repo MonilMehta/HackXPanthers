@@ -7,10 +7,11 @@ import { cn } from "@/lib/utils";
 
 const MenuItem = ({ item, isActive, Icon }) => (
   <motion.div
-    whileHover={{ scale: 1.02 }}
-    whileTap={{ scale: 0.98 }}
-    transition={{ type: "spring", stiffness: 300, damping: 15 }}
-  >
+  initial={{ x: -100, opacity: 0 }}
+  animate={{ x: 0, opacity: 1 }}
+  className="relative"
+>
+
     <Link
       to={item.path}
       className={cn(
@@ -105,7 +106,8 @@ const Sidebar = () => {
     <motion.div
       initial={{ x: -100, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
-      className="h-screen w-64 bg-background/50 backdrop-blur-lg border-r border-primary/10 p-4 flex flex-col"
+       className="sticky top-0 left-0 h-screen w-64 bg-background/50 backdrop-blur-lg border-r border-primary/10 p-4 flex flex-col overflow-y-auto"
+       style={{position: 'sticky'}}
     >
       {/* Logo section with hover effect */}
       <motion.div
