@@ -1,0 +1,39 @@
+:root {
+  /* Light mode colors */
+  --background: #ffffff;
+  --foreground: #000000;
+  --card: #f5f5f5;
+  --primary: #ffd700;
+  --primary-foreground: #000000;
+  --secondary: #d3d3d3;
+  --secondary-foreground: #666666;
+  --accent: #ffd700;
+  --accent-hover: #e6b800;
+  --accent-foreground: #000000;
+  --muted: #aaaaaa;
+  --muted-foreground: #666666;
+  --border: #d3d3d3;
+}
+
+.dark {
+  /* Dark mode colors */
+  --background: #1a1a1a;
+  --foreground: #ffffff;
+  --card: #0f0f0f;
+  --primary: #ffd700;
+  --primary-foreground: #000000;
+  --secondary: #d3d3d3;
+  --secondary-foreground: #aaaaaa;
+  --accent: #f5c518;
+  --accent-hover: #e6b800;
+  --accent-foreground: #000000;
+  --muted: #666666;
+  --muted-foreground: #aaaaaa;
+  --border: #0f0f0f;
+  
+  /* Additional colors for dark theme */
+  --highlight: #ffd700;
+  --highlight-foreground: #000000;
+  --input: #0f0f0f;
+  --ring: #ffd700;
+}

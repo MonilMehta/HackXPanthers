@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
@@ -10,6 +10,13 @@ import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { Link as Lk } from "react-router-dom";
 
 const Navbar = () => {
+  const [darkMode, setDarkMode] = useState(false);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", darkMode);
+    console.log("Mode Changed");
+  }, [darkMode]);
+
   return (
     <nav className="w-full border-b bg-background">
       <div className="container mx-auto px-4 py-3">
@@ -33,12 +40,25 @@ const Navbar = () => {
 
           {/* Actions */}
           <div className="flex items-center space-x-4">
-            <ThemeToggle />
+            <ThemeToggle
+              checked={darkMode}
+              onClick={() => setDarkMode((prev) => !prev)}
+            />
             <Lk to="/signup">
-              <Button variant="outline">Sign Up</Button>
+              <Button
+                variant="outline"
+                className="rounded-full transition-transform duration-300 hover:scale-105"
+              >
+                Sign Up
+              </Button>
             </Lk>
             <Lk to="signin">
-              <Button variant="default">Sign In</Button>
+              <Button
+                variant="default"
+                className="rounded-full transition-transform duration-300 hover:scale-105"
+              >
+                Sign In
+              </Button>
             </Lk>
           </div>
         </div>
