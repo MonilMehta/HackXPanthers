@@ -8,6 +8,7 @@ import { Testimonials } from './Testimonials';
 import { CallToAction } from './CallToAction';
 import Navbar from '../components/Navbar';
 import Footer from '../footer/footer';
+import { AuroraText } from "@/components/magicui/aurora-text";
 
 const LandingPage = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -41,6 +42,16 @@ const LandingPage = () => {
         </div>
 
         <Hero isHovered={isHovered} setIsHovered={setIsHovered} />
+        
+        {/* Aurora Text Section */}
+        <div className="w-full h-auto px-4 py-20">
+          <div className="max-w-7xl mx-auto text-center">
+            <h1 className="text-4xl font-bold tracking-tighter md:text-5xl lg:text-7xl">
+              Build exceptional <AuroraText>communities.</AuroraText>
+            </h1>
+          </div>
+        </div>
+
         <Features />
         <Statistics />
         <Testimonials />

@@ -1,7 +1,7 @@
 // components/sections/Features.jsx
 import { motion } from 'framer-motion';
 import FeatureCard from './comps/FeatureCard';
-import { features } from './comps/landingPageData';
+import { features, getFeatureIcon } from './comps/landingPageData';
 
 export const Features = () => (
   <section className="py-24 relative">
@@ -15,15 +15,18 @@ export const Features = () => (
       </motion.h2>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {features.map((feature, index) => (
-          <FeatureCard
-            key={index}
-            icon={feature.icon}
-            title={feature.title}
-            description={feature.description}
-            color={feature.color}
-          />
-        ))}
+        {features.map((feature, index) => {
+          const IconComponent = getFeatureIcon(feature.iconType);
+          return (
+            <FeatureCard
+              key={index}
+              icon={<IconComponent className="w-8 h-8" />}
+              title={feature.title}
+              description={feature.description}
+              color={feature.color}
+            />
+          );
+        })}
       </div>
     </div>
   </section>
