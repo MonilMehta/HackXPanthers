@@ -289,30 +289,20 @@ const PostCard = ({ post }) => {
 };
 
 const FollowArtist = () => {
-  const [posts, setPosts] = useState(mockPosts);
+  const navigate = useNavigate();
 
-  if (posts.length === 0) {
-    return (
+  return (
+    <div className="min-h-screen flex items-center justify-center">
       <EmptyState
         icon={UserPlus}
-        title="No posts yet"
-        description="Follow some artists to see their posts here!"
+        title="Discover Artists"
+        description="Start following artists to see their content here!"
         action={
-          <Button
-            onClick={() => document.querySelector('[value="discover"]').click()}
-          >
-            Discover Artists
+          <Button onClick={() => navigate("/customer/search")}>
+            Find Artists
           </Button>
         }
       />
-    );
-  }
-
-  return (
-    <div className="max-w-xl mx-auto py-6 space-y-6">
-      {posts.map((post) => (
-        <PostCard key={post.id} post={post} />
-      ))}
     </div>
   );
 };

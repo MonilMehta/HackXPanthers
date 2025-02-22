@@ -78,20 +78,21 @@ const Profile = () => {
       const response = await axios.get(getFollowings, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
-          Accept: "application/json",
-          "Content-Type": "application/json",
         },
       });
 
       console.log("Followings Response:", response.data);
+
       if (response.data.success) {
-        // Set empty array if data is null
-        setFollowings(response.data.data || []);
+        // Update this line to access the correct data structure
+        const followingsData = response.data.data.artist || [];
+        setFollowings(followingsData);
+        console.log("Processed Followings:", followingsData);
       }
     } catch (error) {
       console.error("Error fetching followings:", error);
       toast.error("Failed to fetch following artists");
-      setFollowings([]); // Set empty array on error
+      setFollowings([]);
     } finally {
       setFollowingsLoading(false);
     }
@@ -179,9 +180,13 @@ const Profile = () => {
             <div className="flex items-center gap-6">
               <div className="relative">
                 <img
-                  src={userData.profile_image}
-                  alt={userData.fullName}
+                  src={userData.profile_image || "/default-avatar.png"} // Add default image
+                  alt={userData.fullName || "User"}
                   className="w-32 h-32 rounded-full object-cover border-4 border-primary/10"
+                  onError={(e) => {
+                    e.target.src = "/default-avatar.png"; // Fallback if image fails to load
+                    e.target.onerror = null; // Prevent infinite loop
+                  }}
                 />
               </div>
               <div className="space-y-4">
@@ -238,7 +243,7 @@ const Profile = () => {
         <div className="space-y-4">
           <h2 className="text-2xl font-bold flex items-center gap-2">
             <Users className="h-5 w-5" />
-            Following Artists
+            Following Artists ({followings?.length || 0})
           </h2>
 
           {followingsLoading ? (
@@ -267,15 +272,22 @@ const Profile = () => {
                       src={artist.profile_image || "/default-avatar.png"}
                       alt={artist.fullName}
                       className="h-16 w-16 rounded-full object-cover"
+                      onError={(e) => {
+                        e.target.src = "/default-avatar.png";
+                        e.target.onerror = null;
+                      }}
                     />
                     <div>
                       <h3 className="font-semibold">{artist.fullName}</h3>
                       <p className="text-sm text-muted-foreground">
                         @{artist.username}
                       </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {artist.email}
+                      </p>
                       <Button
                         variant="link"
-                        className="p-0 h-auto text-primary"
+                        className="p-0 h-auto text-primary mt-2"
                         onClick={() => navigate(`/artist/${artist._id}`)}
                       >
                         View Profile
