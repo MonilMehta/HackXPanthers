@@ -1,0 +1,182 @@
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { ApiError } from "../utils/ApiError.js";
+import { Artist } from "../models/Artist.js";
+
+const generateAccessAndRefreshTokens = async(artistId) => {
+    try {
+        const artist = await Artist.findById(artistId)
+        const accessToken = artist.generateAccessToken()
+        const refreshToken = artist.generateRefreshToken()
+
+        artist.refreshToken = refreshToken
+        await user.save({ validateBeforeSave: false })
+
+        return { accessToken, refreshToken }
+    } catch (error) {
+        throw new ApiError(500, "Something went wrong while generating access and refresh tokens")
+    }
+} 
+
+
+
+const loginArtist = asyncHandler( async ( req, res ) => {
+
+    // TODO: login a user
+    // Steps
+    // 1. get details
+    // 2. username or email
+    // 3. find user
+    // 4. check password
+    // 5. generate access and refresh token
+    // 6. remove pass and refreshtoken field from response
+    // 7. send secure cookies
+
+    const { email, username, password } = req.body
+
+    if(!(username || email)){
+        throw new ApiError(400, "Username or Email is required")
+    }
+
+    const artist = await Artist.findOne({
+        $or: [{username}, {email}]
+    })
+    if(!artist){
+        throw new ApiError(404, "Artist does not exist");
+    }
+
+    const isPasswordValid = await artist.isPasswordCorrect(password)
+    if(!isPasswordValid){
+        throw new ApiError(401, "Invalid User Credentials");
+    }
+
+    const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(artist._id);
+
+    const loggedInArtist = await Artist.findById(artist._id).select("-password -refreshToken -avatar -coverImage");
+
+    const options = {
+        httpOnly: true,
+        secure: true
+    }
+    return res
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json(
+        new ApiResponse(
+            200,
+            {
+                artist: loggedInArtist,
+                accessToken,
+                refreshToken
+            },
+            "Artist Login Successful"
+        )
+    )
+
+})
+
+
+
+const registerArtist = asyncHandler( async ( req, res ) => {
+    const {fullname, username, email, phone_no, age, date_of_birth, address, profile_image, gender, password, stageName, bio, yearsExperience, genre, socialMedia} = req.body;
+
+    const existingArtist = await Artist.findOne({
+        $or: [{ username }, { email }]
+    })
+    if(existingArtist){
+        throw new ApiError(409, "User with email or username already exists")
+    }
+    console.log(username);
+    const artist = await Artist.create({
+        username: username.toLowerCase(), fullname, email, phone_no, age, date_of_birth, address, profile_image, gender, password, stageName, bio, yearsExperience, genre, socialMedia
+    })
+
+    const createdUser = await Artist.findById(artist._id).select(
+        "-password -refreshToken"
+    )
+
+    if(!createdUser){
+        throw new ApiError(500, "Something went wrong while registering")
+    }
+
+    return res
+    .status(201)
+    .json(
+        new ApiResponse(
+            200,
+            createdUser,
+            "Artist Registration Successful"
+        )
+    )
+
+})
+
+
+const getOneArtist = async (req, res) => {
+    try {
+      const { artistId } = req.body; // Get artist ID from URL parameters
+  
+      // Find the artist by ID and exclude sensitive fields
+      const artistData = await Artist.findById(artistId)
+        .populate({
+          path: "Reviews",
+          select: "-__v" // Exclude version field from Reviews
+        })
+        .select("-password -refreshToken -__v"); // Exclude sensitive fields
+  
+      // If artist is not found
+      if (!artistData) {
+        return res.status(404).json({ success: false, message: "Artist not found" });
+      }
+  
+      res.status(200).json({ success: true, data: artistData });
+    } catch (error) {
+      console.error("Error fetching artist:", error);
+      res.status(500).json({ success: false, message: "Server error" });
+    }
+  };
+  
+
+  const getAllArtist = async (req, res) => {
+    try {
+      const artists = await Artist.find()
+        .populate({
+          path: "Reviews",
+          select: "-__v" // Exclude version field from Reviews
+        })
+        .select("-password -refreshToken -__v"); // Exclude sensitive and version fields
+  
+      res.status(200).json({ success: true, data: artists });
+    } catch (error) {
+      console.error("Error fetching artists:", error);
+      res.status(500).json({ success: false, message: "Server error" });
+    }
+  };
+  
+  const viewArtist = async (req, res) => {
+    try {
+      const { artistId } = req.params; // Get artist ID from URL parameters
+  
+      // Find the artist and select the specified fields
+      const artistDetails = await Artist.findById(artistId)
+        .populate({
+          path: "Reviews",
+          select: "-__v" // Exclude version field from Reviews
+        })
+        .select("fullname username age gender profile_image stageName bio yearsExperience genre socialMedia Reviews");
+  
+      // If artist is not found
+      if (!artistDetails) {
+        return res.status(404).json({ success: false, message: "Artist not found" });
+      }
+  
+      res.status(200).json({ success: true, data: artistDetails });
+    } catch (error) {
+      console.error("Error fetching artist details:", error);
+      res.status(500).json({ success: false, message: "Server error" });
+    }
+  };
+  
+  
+export { registerArtist , loginArtist , getOneArtist , getAllArtist, viewArtist}
