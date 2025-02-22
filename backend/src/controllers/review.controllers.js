@@ -56,7 +56,7 @@ const updateRatingStats = async (model, modelId, isArtist = true) => {
 // 🎤 3) Fetch Artist Reviews
  const getArtistReviews = async (req, res, next) => {
     try {
-        const { artistId } = req.params;
+        const { artistId } = req.body;
         if (!mongoose.Types.ObjectId.isValid(artistId)) throw new ApiError(400, "Invalid artist ID");
 
         const reviews = await Review.find({ artistId }).populate("userId", "username");
@@ -69,7 +69,7 @@ const updateRatingStats = async (model, modelId, isArtist = true) => {
 // 🏟️ 4) Fetch Venue Reviews
  const getVenueReviews = async (req, res, next) => {
     try {
-        const { venueId } = req.params;
+        const { venueId } = req.body;
         if (!mongoose.Types.ObjectId.isValid(venueId)) throw new ApiError(400, "Invalid venue ID");
 
         const reviews = await Review.find({ venueId }).populate("userId", "username");
@@ -79,5 +79,19 @@ const updateRatingStats = async (model, modelId, isArtist = true) => {
     }
 };
 
+const getUserReviews = async (req, res, next) => {
+    try {
+        const userId = req.body;
+        if (!mongoose.Types.ObjectId.isValid(userId)) throw new ApiError(400, "Invalid user ID");
 
-export { rateArtist, rateVenue, getArtistReviews, getVenueReviews };
+        const reviews = await Review.find({ userId })
+            .populate("artistId", "fullName")
+            .populate("venueId", "name");
+
+        res.status(200).json(new ApiResponse(200, reviews, "User reviews fetched successfully"));
+    } catch (error) {
+        next(new ApiError(500, error.message));
+    }
+};
+
+export { rateArtist, rateVenue, getArtistReviews, getVenueReviews, getUserReviews };

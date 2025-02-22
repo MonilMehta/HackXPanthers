@@ -1,6 +1,8 @@
 import { Venue } from "../models/venue.models.js";
-import {Event} from "../models/event.models.js";
+import { Event } from "../models/event.models.js";
+import { Admin } from "../models/admin.models.js";
 import mongoose from "mongoose";
+import crypto from "crypto";
 
 // Function to auto-generate seat arrangements
 const generateSeats = (seatSet) => {
@@ -85,14 +87,15 @@ const registerVenue = async (req, res) => {
             availabilitySchedule,
             venueTypes,
             description,
-            images
+            images,
+            status: "pending_approval",
         });
 
         await newVenue.save(); // Save to database
 
         return res.status(201).json({
             success: true,
-            message: "Venue registered successfully!",
+            message: "Venue registered successfully and pending admin approval!",
             venue: newVenue
         });
     } catch (error) {
@@ -101,6 +104,92 @@ const registerVenue = async (req, res) => {
             message: "Error registering venue",
             error: error.message
         });
+    }
+};
+
+// Controller to approve a venue by admin
+const approveVenueByAdmin = async (req, res) => {
+    try {
+        const { venueId } = req.body;
+
+        if (!venueId) {
+            return res.status(404).json({ message: "Invalid venueId" });
+        }
+
+        const admin = await Admin.findById(req.user?._id);
+        if (!admin) {
+            return res.status(404).json({ message: "Admin not found" });
+        }
+
+        const venue = await Venue.findById(venueId);
+        if (!venue) {
+            return res.status(404).json({ message: "Venue not found" });
+        }
+
+        // Check if venue is already approved
+        if (venue.status === "approved_by_admin") {
+            return res.status(400).json({ message: "Venue is already approved by admin" });
+        }
+
+        // Generate verification token
+        const verificationToken = crypto.randomBytes(20).toString('hex');
+
+        // Update the venue status and approval details
+        venue.status = "approved_by_admin";
+        venue.verificationToken = verificationToken;
+        venue.approvalDate = new Date();
+        venue.approvedBy = req.user?._id; // Store the admin ID who approved the venue
+
+        await venue.save();
+
+        res.status(200).json({
+            message: "Venue has been successfully approved by admin and verification token sent to venue manager",
+            venue,
+        });
+    } catch (error) {
+        console.error("Error approving venue:", error);
+        res.status(500).json({ message: "Failed to approve venue", error: error.message });
+    }
+};
+
+// Controller to verify a venue by venue manager
+const verifyVenue = async (req, res) => {
+    try {
+        const { venueId, verificationToken } = req.body;
+        const userId = req.user?._id;
+        if(!userId) {
+            return res.status(401).json({ message: "Unauthorized request" });
+        }
+        if (!venueId || !verificationToken) {
+            return res.status(400).json({ message: "Venue ID and verification token are required" });
+        }
+
+        const venue = await Venue.findById(venueId);
+        if (!venue) {
+            return res.status(404).json({ message: "Venue not found" });
+        }
+
+        if (venue.managerId.toString() !== userId.toString()) {
+            return res.status(401).json({ message: "Unauthorized request" });
+        }
+
+        if (venue.verificationToken !== verificationToken) {
+            return res.status(400).json({ message: "Invalid verification token" });
+        }
+
+        // Update the venue status to approved
+        venue.status = "approved";
+        venue.verificationToken = null; // Clear the verification token
+
+        await venue.save();
+
+        res.status(200).json({
+            message: "Venue has been successfully verified and registered",
+            venue,
+        });
+    } catch (error) {
+        console.error("Error verifying venue:", error);
+        res.status(500).json({ message: "Failed to verify venue", error: error.message });
     }
 };
 
@@ -122,6 +211,18 @@ const getAllVenues = async (req, res) => {
     }
 };
 
+// Controller to get pending venues for admin approval
+const getPendingVenues = async (req, res) => {
+    try {
+        const pendingVenues = await Venue.find({ status: "pending_approval" })
+            .populate("managerId", "name email");
+
+        res.status(200).json({ success: true, data: pendingVenues });
+    } catch (error) {
+        console.error("Error fetching pending venues for admin:", error);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+};
 
 const bookVenue = async (req, res) => {
     const { eventId, venueId } = req.body;
@@ -181,5 +282,4 @@ const bookVenue = async (req, res) => {
     }
 };
 
-
-export { getSimilarVenues, registerVenue, getAllVenues, bookVenue };
+export { getSimilarVenues, registerVenue, approveVenueByAdmin, verifyVenue, getAllVenues, getPendingVenues, bookVenue };

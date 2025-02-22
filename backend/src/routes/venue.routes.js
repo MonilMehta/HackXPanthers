@@ -1,12 +1,16 @@
 import { Router } from "express";
-import { getSimilarVenues,registerVenue, getAllVenues, bookVenue } from "../controllers/venue.controller.js";
+import { getSimilarVenues, registerVenue, approveVenueByAdmin, verifyVenue, getAllVenues, getPendingVenues, bookVenue } from "../controllers/venue.controller.js";
+import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
-router.route("/registerVenue").post(registerVenue);
-router.route("/getAllVenues").get(getAllVenues);
-router.route("/bookVenue").post(bookVenue);
-router.route("/getSimilarVenues").get(getSimilarVenues);
+router.route("/registerVenue").post(verifyJWT, registerVenue);
+router.route("/approveVenueByAdmin").post(verifyJWT, approveVenueByAdmin);
+router.route("/verifyVenue").post(verifyJWT, verifyVenue);
+router.route("/getAllVenues").get(verifyJWT, getAllVenues);
+router.route("/getPendingVenues").get(verifyJWT, getPendingVenues);
+router.route("/bookVenue").post(verifyJWT, bookVenue);
+router.route("/getSimilarVenues").get(verifyJWT, getSimilarVenues);
 
-export default router
+export default router;
 

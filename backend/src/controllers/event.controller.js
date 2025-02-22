@@ -448,4 +448,22 @@ const respondToNegotiation = async (req, res) => {
     }
 };
 
-export { createEvent, getEventDetails, approveEventByAdmin, approveEventByVenueManager, rejectEvent, getEventsByDate, filterEventsByType, getPendingEventsAdmin, getPendingEventsVenueManager, getEventById, proposeNegotiation, respondToNegotiation };
+const getAllEvents = async (req, res) => {
+    try {
+        const events = await Event.find()
+            .populate("primaryArtistId", "fullName")
+            .populate("venueId", "name address");
+
+        if (!events || events.length === 0) {
+            return res.status(404).json({ message: "No events found." });
+        }
+
+        res.status(200).json({ success: true, data: events });
+    } catch (error) {
+        console.error("Error fetching all events:", error);
+        res.status(500).json({ success: false, message: "Failed to fetch all events", error: error.message });
+    }
+};
+
+
+export { getAllEvents, createEvent, getEventDetails, approveEventByAdmin, approveEventByVenueManager, rejectEvent, getEventsByDate, filterEventsByType, getPendingEventsAdmin, getPendingEventsVenueManager, getEventById, proposeNegotiation, respondToNegotiation };
