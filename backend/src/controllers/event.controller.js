@@ -1,5 +1,6 @@
 import { Event } from "../models/event.models.js";
 import { Admin } from "../models/admin.models.js";
+import { VenueManager } from "../models/venueManager.models.js";
 import jwt from "jsonwebtoken";
 
 const createEvent = async (req, res) => {
@@ -13,11 +14,14 @@ const createEvent = async (req, res) => {
             genres,
             tags,
             mediaAssets,
-            proposedPrice
+            proposedPrice,
+            venueId,
+            startTime,
+            endTime,
         } = req.body;
 
         // Validate required fields
-        if (!title || !description || !eventType || !eventDate  || !proposedPrice) {
+        if (!title || !description || !eventType || !eventDate || !minAge || !mediaAssets || !proposedPrice || !venueId || !startTime || !endTime) {
             return res.status(400).json({ message: "Please provide all required fields." });
         }
 
@@ -33,11 +37,14 @@ const createEvent = async (req, res) => {
             tags,
             mediaAssets,
             proposedPrice,
-            status: "draft", // Default status
+            venueId,
+            startTime,
+            endTime,
+            status: "pending_approval", // Default status
         });
 
         res.status(201).json({
-            message: "Event registered successfully!",
+            message: "Event registered successfully and pending admin approval!",
             event,
         });
     } catch (error) {
@@ -45,7 +52,6 @@ const createEvent = async (req, res) => {
         res.status(500).json({ message: "Error creating event.", error: error.message });
     }
 };
-
 
 const getEventDetails = async (req, res) => {
     try {
@@ -55,6 +61,10 @@ const getEventDetails = async (req, res) => {
             .populate({
                 path: "primaryArtistId",
                 select: "fullName"
+            })
+            .populate({
+                path: "venueId",
+                select: "name address"
             })
             .select(
                 "title description eventType eventDate startTime endTime minAge genres tags mediaAssets seatPricing"
@@ -70,25 +80,64 @@ const getEventDetails = async (req, res) => {
     }
 };
 
-const approveEvent = async (req, res) => {
+const approveEventByAdmin = async (req, res) => {
     try {
-        const token = req.cookies.accessToken || req.headers.authorization?.split(" ")[1];
-        if (!token) {
-            return res.status(401).json({ message: "Unauthorized: No token provided" });
+
+        const { eventId } = req.body;
+
+        if(!eventId){
+            return res.status(404).json({ message: "Invalid eventId" });
         }
 
-        const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-        const adminId = decoded._id;
-
-        const admin = await Admin.findById(adminId);
+        const admin = await Admin.findById(req.user?._id);
         if (!admin) {
             return res.status(404).json({ message: "Admin not found" });
         }
 
-        const { id } = req.body;
+        const event = await Event.findById(eventId);
+        if (!event) {
+            return res.status(404).json({ message: "Event not found" });
+        }
+
+        // Check if event is already approved
+        if (event.status === "approved_by_admin") {
+            return res.status(400).json({ message: "Event is already approved by admin" });
+        }
+
+        // Update the event status and approval details
+        event.status = "approved_by_admin";
+        event.isApproved = true;
+        event.approvalDate = new Date();
+        event.approvedBy = req.user?._id; // Store the admin ID who approved the event
+
+        await event.save();
+
+        res.status(200).json({
+            message: "Event has been successfully approved by admin and forwarded to venue manager",
+            event,
+        });
+    } catch (error) {
+        console.error("Error approving event:", error);
+        res.status(500).json({ message: "Failed to approve event", error: error.message });
+    }
+};
+
+const approveEventByVenueManager = async (req, res) => {
+    try {
+
+        const { eventId } = req.body;
+
+        if(!eventId){
+            return res.status(404).json({ message: "Invalid eventId" });
+        }
+
+        const venueManager = await VenueManager.findById(req.user?._id);
+        if (!venueManager) {
+            return res.status(404).json({ message: "Venue Manager not found" });
+        }
 
         // Find the event by ID
-        const event = await Event.findById(id);
+        const event = await Event.findById(eventId);
         if (!event) {
             return res.status(404).json({ message: "Event not found" });
         }
@@ -102,17 +151,50 @@ const approveEvent = async (req, res) => {
         event.status = "approved";
         event.isApproved = true;
         event.approvalDate = new Date();
-        event.approvedBy = adminId; // Store the admin ID who approved the event
+        event.approvedBy = req.user?._id; // Store the venue manager ID who approved the event
 
         await event.save();
 
         res.status(200).json({
-            message: "Event has been successfully approved",
+            message: "Event has been successfully approved by venue manager and is now listed",
             event,
         });
     } catch (error) {
         console.error("Error approving event:", error);
         res.status(500).json({ message: "Failed to approve event", error: error.message });
+    }
+};
+
+const rejectEvent = async (req, res) => {
+    try {
+ 
+        const { eventId, rejectionReason } = req.body;
+        const userId = req.user?._id;
+
+        const admin = await Admin.findById(userId)
+        const venueManager = await VenueManager.findById(userId)
+        if (!admin && !venueManager) {
+            return res.status(404).json({ message: "Admin and Venue Manager not found" });
+        }
+
+        const event = await Event.findById(eventId);
+        if (!event) {
+            return res.status(404).json({ message: "Event not found" });
+        }
+
+        // Update the event status and rejection details
+        event.status = "rejected";
+        event.rejectionReason = rejectionReason;
+
+        await event.save();
+
+        res.status(200).json({
+            message: "Event has been successfully rejected",
+            event,
+        });
+    } catch (error) {
+        console.error("Error rejecting event:", error);
+        res.status(500).json({ message: "Failed to reject event", error: error.message });
     }
 };
 
@@ -185,4 +267,101 @@ const getEventsByDate = async (req, res) => {
     }
 };
 
-export { createEvent , getEventDetails, approveEvent, getEventsByDate, filterEventsByType };
+const getPendingEventsAdmin = async (req, res) => {
+    try {
+        const pendingEvents = await Event.find({ status: "pending_approval" })
+            .populate("primaryArtistId", "fullName")
+            .populate("venueId", "name address");
+
+        res.status(200).json({ success: true, data: pendingEvents });
+    } catch (error) {
+        console.error("Error fetching pending events for admin:", error);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+};
+
+const getPendingEventsVenueManager = async (req, res) => {
+    try {
+        const pendingEvents = await Event.find({ status: "approved_by_admin", venueId: req.user._id })
+            .populate("primaryArtistId", "fullName")
+            .populate("venueId", "name address");
+
+        res.status(200).json({ success: true, data: pendingEvents });
+    } catch (error) {
+        console.error("Error fetching pending events for venue manager:", error);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+};
+
+const getEventById = async (req, res) => {
+    try {
+        const { eventId } = req.params;
+
+        const eventDetails = await Event.aggregate([
+            { $match: { _id: mongoose.Types.ObjectId(eventId) } },
+            {
+                $lookup: {
+                    from: "artists",
+                    localField: "primaryArtistId",
+                    foreignField: "_id",
+                    as: "artistDetails"
+                }
+            },
+            {
+                $lookup: {
+                    from: "venues",
+                    localField: "venueId",
+                    foreignField: "_id",
+                    as: "venueDetails"
+                }
+            },
+            { $unwind: "$artistDetails" },
+            { $unwind: "$venueDetails" },
+            {
+                $project: {
+                    title: 1,
+                    description: 1,
+                    eventType: 1,
+                    eventDate: 1,
+                    startTime: 1,
+                    endTime: 1,
+                    minAge: 1,
+                    genres: 1,
+                    tags: 1,
+                    mediaAssets: 1,
+                    proposedPrice: 1,
+                    status: 1,
+                    artistDetails: {
+                        fullName: 1,
+                        email: 1,
+                        phone_no: 1,
+                        stageName: 1,
+                        bio: 1,
+                        yearsExperience: 1,
+                        genre: 1,
+                        socialMedia: 1
+                    },
+                    venueDetails: {
+                        name: 1,
+                        address: 1,
+                        capacity: 1,
+                        amenities: 1,
+                        description: 1,
+                        images: 1
+                    }
+                }
+            }
+        ]);
+
+        if (!eventDetails.length) {
+            return res.status(404).json({ success: false, message: "Event not found" });
+        }
+
+        res.status(200).json({ success: true, data: eventDetails[0] });
+    } catch (error) {
+        console.error("Error fetching event details:", error);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+};
+
+export { createEvent, getEventDetails, approveEventByAdmin, approveEventByVenueManager, rejectEvent, getEventsByDate, filterEventsByType, getPendingEventsAdmin, getPendingEventsVenueManager, getEventById };
