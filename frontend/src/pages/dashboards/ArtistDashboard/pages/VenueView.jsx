@@ -29,75 +29,8 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Slider } from "@/components/ui/slider";
-
-const venues = [
-  {
-    id: 1,
-    name: "Laugh Factory Mumbai",
-    location: "Andheri West, Mumbai",
-    type: "Comedy Club",
-    capacity: "200",
-    rating: "4.8",
-    shows: "120",
-    description: "Mumbai's premier comedy club featuring top comedians",
-    amenities: ["Professional Sound", "Green Room", "Bar Service"],
-    price: "₹25,000 per night",
-    image: "https://source.unsplash.com/random/800x600/?comedy,club",
-  },
-  {
-    id: 2,
-    name: "Comedy House Delhi",
-    location: "Connaught Place, Delhi",
-    type: "Theater",
-    capacity: "350",
-    rating: "4.9",
-    shows: "200",
-    description: "Historic theater in the heart of Delhi",
-    amenities: ["Stage Lighting", "Audio System", "Parking"],
-    price: "₹35,000 per night",
-    image: "https://source.unsplash.com/random/800x600/?theater",
-  },
-  {
-    id: 3,
-    name: "The Improv Bangalore",
-    location: "Indiranagar, Bangalore",
-    type: "Comedy Club",
-    capacity: "150",
-    rating: "4.7",
-    shows: "90",
-    image: "https://images.unsplash.com/photo-1516280440614-37939bbacd81",
-  },
-  {
-    id: 4,
-    name: "Laughter Lounge Pune",
-    location: "Koregaon Park, Pune",
-    type: "Lounge",
-    capacity: "180",
-    rating: "4.6",
-    shows: "80",
-    image: "https://images.unsplash.com/photo-1517457373958-b7bdd4587205",
-  },
-  {
-    id: 5,
-    name: "Comedy Central Hyderabad",
-    location: "Jubilee Hills, Hyderabad",
-    type: "Comedy Club",
-    capacity: "250",
-    rating: "4.8",
-    shows: "150",
-    image: "https://images.unsplash.com/photo-1585699324551-f6c309eedeca",
-  },
-  {
-    id: 6,
-    name: "The Stand-Up Chennai",
-    location: "T Nagar, Chennai",
-    type: "Theater",
-    capacity: "300",
-    rating: "4.7",
-    shows: "130",
-    image: "https://images.unsplash.com/photo-1576485375217-d6a95e34d043",
-  },
-];
+import axios from "axios";
+import { getAllVenues } from "@/api/venue.api";
 
 const VenueCard = ({ venue }) => {
   const navigate = useNavigate();
@@ -106,16 +39,16 @@ const VenueCard = ({ venue }) => {
     navigate("/artist/booking", {
       state: {
         venueData: {
-          id: venue.id,
+          id: venue._id,
           name: venue.name,
-          location: venue.location,
-          type: venue.type,
+          location: `${venue.address?.city}, ${venue.address?.state}`,
+          type: venue.venueTypes?.[0]?.name || "Venue",
           capacity: venue.capacity,
           rating: venue.rating,
           shows: venue.shows,
-          image: venue.image,
+          image: venue.images?.[0] || "https://source.unsplash.com/random/800x600/?venue",
           description: venue.description,
-          price: venue.price,
+          price: venue.basePrice || "Price on request",
           amenities: venue.amenities,
         },
       },
@@ -126,18 +59,18 @@ const VenueCard = ({ venue }) => {
     <Card className="overflow-hidden bg-background/50 backdrop-blur-sm border-primary/20 hover:border-primary/40 transition-all">
       <div className="h-48 bg-primary/10 relative">
         <img
-          src={venue.image}
+          src={venue.images?.[0] || "https://source.unsplash.com/random/800x600/?venue"}
           alt={venue.name}
           className="w-full h-full object-cover"
         />
-        <Badge className="absolute top-2 right-2">{venue.type}</Badge>
+        <Badge className="absolute top-2 right-2">{venue.venueTypes?.[0]?.name || "Venue"}</Badge>
       </div>
       <div className="p-4 space-y-4">
         <div>
           <h3 className="font-semibold text-lg">{venue.name}</h3>
           <div className="flex items-center gap-1 text-muted-foreground">
             <MapPin className="h-4 w-4" />
-            <span className="text-sm">{venue.location}</span>
+            <span className="text-sm">{venue.address?.city}, {venue.address?.state}</span>
           </div>
         </div>
 
@@ -148,11 +81,11 @@ const VenueCard = ({ venue }) => {
           </div>
           <div className="flex items-center gap-1">
             <Star className="h-4 w-4 text-primary" />
-            <span>{venue.rating}</span>
+            <span>{venue.Reviews?.length || "N/A"}</span>
           </div>
           <div className="flex items-center gap-1">
             <Calendar className="h-4 w-4 text-primary" />
-            <span>{venue.shows}+ shows</span>
+            <span>{venue?.shows || 0}+ shows</span>
           </div>
         </div>
 
@@ -275,7 +208,29 @@ const Venue = () => {
     maxPrice: 50000,
     rating: 0,
   });
-  const [filteredVenues, setFilteredVenues] = useState(venues);
+  const [venues, setVenues] = useState([]); // New state for venues
+  const [filteredVenues, setFilteredVenues] = useState([]);
+  const [loading, setLoading] = useState(true); // New loading state
+
+  // Fetch venues from backend
+  useEffect(() => {
+    const fetchVenues = async () => {
+      try {
+        const response = await axios.get(getAllVenues, {headers: {Authorization: `Bearer ${localStorage.getItem("accessToken")}`}});
+        if (response.data.success) {
+          console.log(response)
+          setVenues(response.data.venues);
+          setFilteredVenues(response.data.venues);
+        }
+      } catch (error) {
+        console.error("Error fetching venues:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchVenues();
+  }, []);
 
   // Apply filters whenever search or filters change
   useEffect(() => {
@@ -283,22 +238,22 @@ const Venue = () => {
       // Search filter
       const searchMatch =
         venue.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        venue.location.toLowerCase().includes(searchQuery.toLowerCase());
+        `${venue.address?.city}, ${venue.address?.state}`.toLowerCase().includes(searchQuery.toLowerCase());
 
       // Type filter
-      const typeMatch = filters.type === "all" || venue.type === filters.type;
+      const typeMatch = filters.type === "all" || venue.venueTypes?.some(type => type.name === filters.type);
 
       // Capacity filter
       const capacityMatch = parseInt(venue.capacity) >= filters.minCapacity;
 
       // Rating filter
-      const ratingMatch = parseFloat(venue.rating) >= filters.rating;
+      const ratingMatch = (venue.Reviews?.length || 0) >= filters.rating;
 
       return searchMatch && typeMatch && capacityMatch && ratingMatch;
     });
 
     setFilteredVenues(filtered);
-  }, [searchQuery, filters]);
+  }, [searchQuery, filters, venues]);
 
   return (
     <main className="flex-1 overflow-y-auto p-8">
@@ -323,40 +278,46 @@ const Venue = () => {
           <FilterSection filters={filters} setFilters={setFilters} />
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredVenues.length > 0 ? (
-            filteredVenues.map((venue) => (
-              <motion.div
-                key={venue.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <VenueCard venue={venue} />
-              </motion.div>
-            ))
-          ) : (
-            <div className="col-span-full text-center py-12">
-              <p className="text-muted-foreground">
-                No venues match your filters
-              </p>
-              <Button
-                variant="link"
-                onClick={() =>
-                  setFilters({
-                    type: "all",
-                    minCapacity: 0,
-                    maxPrice: 50000,
-                    rating: 0,
-                  })
-                }
-                className="mt-2"
-              >
-                Reset Filters
-              </Button>
-            </div>
-          )}
-        </div>
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <p className="text-muted-foreground">Loading venues...</p>
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredVenues.length > 0 ? (
+              filteredVenues.map((venue) => (
+                <motion.div
+                  key={venue._id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <VenueCard venue={venue} />
+                </motion.div>
+              ))
+            ) : (
+              <div className="col-span-full text-center py-12">
+                <p className="text-muted-foreground">
+                  No venues match your filters
+                </p>
+                <Button
+                  variant="link"
+                  onClick={() =>
+                    setFilters({
+                      type: "all",
+                      minCapacity: 0,
+                      maxPrice: 50000,
+                      rating: 0,
+                    })
+                  }
+                  className="mt-2"
+                >
+                  Reset Filters
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </main>
   );
