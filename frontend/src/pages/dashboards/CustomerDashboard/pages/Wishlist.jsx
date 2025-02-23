@@ -5,7 +5,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, MapPin, Clock, Ticket, Heart } from "lucide-react";
+import { Calendar, MapPin, Clock, Ticket, Heart, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 const Wishlist = () => {
@@ -103,18 +103,16 @@ const Wishlist = () => {
             >
               <div className="relative h-48">
                 <img
-                  src={
-                    event.mediaAssets?.bannerImageUrl ||
-                    event.mediaAssets?.thumbnailUrl ||
-                    "/default-event-image.jpg" // Add a default image
-                  }
-                  alt={event.title}
+                  src={event.artist?.profileImage || "/default-event-image.jpg"}
+                  alt={event.description}
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/30" />
                 <div className="absolute bottom-4 left-4 right-4">
                   <h3 className="text-white text-xl font-bold">
-                    {event.title}
+                    {event.artist?.stageName ||
+                      event.artist?.name ||
+                      "Unknown Artist"}
                   </h3>
                   {event.venue && (
                     <p className="text-white/80 text-sm flex items-center gap-1">
@@ -127,34 +125,53 @@ const Wishlist = () => {
               </div>
 
               <CardContent className="p-4">
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {event.genres?.map((genre, index) => (
-                    <Badge key={index} variant="secondary">
-                      {genre}
-                    </Badge>
-                  ))}
-                </div>
+                <div className="space-y-4">
+                  {/* Description */}
+                  <p className="text-sm text-muted-foreground line-clamp-2">
+                    {event.description}
+                  </p>
 
-                <div className="space-y-2 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4" />
-                    {new Date(event.eventDate).toLocaleDateString()}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4" />
-                    {event.startTime} - {event.endTime}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Ticket className="w-4 h-4" />₹{event.proposedPrice}
-                  </div>
-                </div>
+                  {/* Venue Details */}
+                  {event.venue && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <MapPin className="w-4 h-4" />
+                        <span>
+                          {event.venue.address.street},{" "}
+                          {event.venue.address.city}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Users className="w-4 h-4" />
+                        <span>Capacity: {event.venue.capacity}</span>
+                      </div>
+                    </div>
+                  )}
 
-                <Button
-                  className="w-full mt-4"
-                  onClick={() => navigate(`/customer/events/${event._id}`)}
-                >
-                  View Event
-                </Button>
+                  {/* Artist Info */}
+                  {event.artist && Object.keys(event.artist).length > 0 && (
+                    <div className="flex items-center gap-3 border-t pt-3">
+                      <img
+                        src={event.artist.profileImage || "/default-avatar.jpg"}
+                        alt={event.artist.name}
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                      <div>
+                        <p className="font-medium">{event.artist.stageName}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {event.artist.name}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  <Button
+                    className="w-full mt-2"
+                    onClick={() => navigate(`/customer/events/${event._id}`)}
+                  >
+                    View Event Details
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}
