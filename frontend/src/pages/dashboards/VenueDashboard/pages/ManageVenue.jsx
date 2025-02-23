@@ -13,7 +13,6 @@ import { toast } from 'sonner';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 const ManageVenue = () => {
   const [proposals, setProposals] = useState([]);
@@ -120,99 +119,6 @@ const ManageVenue = () => {
     return time ? time.replace(/:/g, ':') : 'N/A';
   };
 
-  const EventDetailsDialog = ({ event }) => (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm">View Details</Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>{event.title}</DialogTitle>
-        </DialogHeader>
-        <ScrollArea className="max-h-[80vh]">
-          <div className="space-y-4">
-            <div className="grid gap-4">
-              <div className="space-y-2">
-                <h3 className="font-semibold">Event Information</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4" />
-                    <span>{formatDate(event.eventDate)}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4" />
-                    <span>{formatTime(event.startTime)} - {formatTime(event.endTime)}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4" />
-                    <span>{event.venueId?.address?.street}, {event.venueId?.address?.city}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4" />
-                    <span>Age {event.minAge}+</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <h3 className="font-semibold">Description</h3>
-                <p className="text-sm text-muted-foreground">{event.description}</p>
-              </div>
-
-              <div className="space-y-2">
-                <h3 className="font-semibold">Categories & Tags</h3>
-                <div className="flex flex-wrap gap-2">
-                  {event.genres?.map((genre, index) => (
-                    <Badge key={index} variant="outline">
-                      <Tag className="h-3 w-3 mr-1" />
-                      {genre}
-                    </Badge>
-                  ))}
-                  {event.tags?.map((tag, index) => (
-                    <Badge key={index} variant="secondary">
-                      <Tag className="h-3 w-3 mr-1" />
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <h3 className="font-semibold">Financial Details</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="h-4 w-4" />
-                    <span>Commission: {event.percentageCommission}%</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Ticket className="h-4 w-4" />
-                    <span>Tickets Sold: {event.analytics?.totalTicketsSold || 0}</span>
-                  </div>
-                </div>
-              </div>
-
-              {event.mediaAssets?.galleryImages?.length > 0 && (
-                <div className="space-y-2">
-                  <h3 className="font-semibold">Gallery</h3>
-                  <div className="grid grid-cols-3 gap-4">
-                    {event.mediaAssets.galleryImages.map((image, index) => (
-                      <img
-                        key={index}
-                        src={image}
-                        alt={`Event gallery ${index + 1}`}
-                        className="rounded-md object-cover w-full h-32"
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </ScrollArea>
-      </DialogContent>
-    </Dialog>
-  );
-
   return (
     <div className="p-6">
       <Tabs defaultValue="proposals">
@@ -276,7 +182,6 @@ const ManageVenue = () => {
                      event.proposedPrice ? `₹${event.proposedPrice}` : 'N/A'}
                   </TableCell>
                   <TableCell className="space-x-2">
-                    <EventDetailsDialog event={event} />
                     <Button 
                       variant="default" 
                       size="sm" 

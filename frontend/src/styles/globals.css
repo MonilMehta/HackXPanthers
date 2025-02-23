@@ -1,48 +1,44 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
 @layer base {
   :root {
     /* Light mode colors */
     --background: #ffffff;
     --foreground: #000000;
     --card: #f5f5f5;
-    --primary: #ffd700;
-    --primary-foreground: #978e8e;
-    --secondary: #d3d3d3;
-    --secondary-foreground: #666666;
-    --accent: #ffd700;
-    --accent-hover: #e6b800;
+    --primary: #dead84;
+    --primary-foreground: #021E39;
+    --secondary: #021E39;
+    --secondary-foreground: #ffffff;
+    --accent: #dead84;
+    --accent-hover: #c79b6b;
     --accent-foreground: #000000;
     --muted: #aaaaaa;
     --muted-foreground: #666666;
     --border: #d3d3d3;
+    --font-primary: 'Poppins', sans-serif;
+    --font-secondary: 'Montserrat', sans-serif;
   }
 
   .dark {
     /* Dark mode colors */
-    --background: #292424;
-    --foreground: #c0bbbb;
-    --card: #333333;
-    --primary: #fbe35d;
+    --background: #021E39;
+    --foreground: #ffffff;
+    --card: #1a2a3a;
+    --primary: #dead84;
     --primary-foreground: #000000;
-    --secondary: #d3d3d3;
-    --secondary-foreground: #aaaaaa;
-    --accent: #f7dd80;
-    --accent-hover: #e6b800;
+    --secondary: #dead84;
+    --secondary-foreground: #000000;
+    --accent: #dead84;
+    --accent-hover: #c79b6b;
     --accent-foreground: #000000;
     --muted: #666666;
     --muted-foreground: #aaaaaa;
-    --border: #292424;
-
-    /* Additional colors for dark theme */
-    --highlight: #f5e06d;
-    --highlight-foreground: #000000;
-    --input: #0f0f0f;
-    --ring: #ffd700;
+    --border: #1a2a3a;
   }
 }
+
 
 @layer components {
   .spotlight-glow {
@@ -56,14 +52,19 @@
 }
 
 * {
-  @apply border-border;
+  @apply border-border font-[var(--font-primary)];
 }
 
 body {
   @apply bg-background text-foreground transition-colors duration-300;
+  font-family: var(--font-primary);
 }
 
-/* Add to your global.css */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-secondary);
+}
+
+/* Additional Components */
 .auth-card {
   background: rgba(255, 255, 255, 0.08) !important;
   backdrop-filter: blur(12px) !important;
