@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -12,16 +12,40 @@ import { Check, Upload } from "lucide-react";
 import AWSHelper from '@/utils/awsHelper';
 
 const EditProfileModal = ({ isOpen, onClose, managerData, onUpdate, imagePreview, onImageUpload }) => {
-  const handleImageUpload = async (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      try {
-        const url = await AWSHelper.upload(file, managerData.name.replace(/\s+/g, '-').toLowerCase());
-        onUpdate({ ...managerData, profileImage: url });
-      } catch (error) {
-        toast.error('Failed to upload image');
-      }
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    phone_no: '',
+    address: {
+      street: '',
+      city: '',
+      state: '',
+      pincode: '',
+      latitude: '',
+      longitude: ''
     }
+  });
+
+  useEffect(() => {
+    setFormData({
+      fullName: managerData.fullName || '',
+      email: managerData.email || '',
+      phone_no: managerData.phone_no || '',
+      address: managerData.address || {
+        street: '',
+        city: '',
+        state: '',
+        pincode: '',
+        latitude: '',
+        longitude: ''
+      }
+    });
+  }, [managerData]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onUpdate(formData);
+    onClose();
   };
 
   return (
@@ -30,17 +54,17 @@ const EditProfileModal = ({ isOpen, onClose, managerData, onUpdate, imagePreview
         <DialogHeader>
           <DialogTitle>Edit Profile</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 pt-4">
+        <form onSubmit={handleSubmit} className="space-y-4 pt-4">
           <div className="flex flex-col items-center gap-4">
             <Avatar className="h-24 w-24 cursor-pointer relative group">
-              <AvatarImage src={managerData.profileImage} />
-              <AvatarFallback>{managerData.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+              <AvatarImage src={imagePreview || managerData.profile_image} />
+              <AvatarFallback>{formData.fullName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
               <input
                 type="file"
                 className="hidden"
                 id="avatar-upload"
                 accept="image/*"
-                onChange={handleImageUpload}
+                onChange={onImageUpload}
               />
               <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
                 <Upload className="h-6 w-6 text-white" />
@@ -53,30 +77,67 @@ const EditProfileModal = ({ isOpen, onClose, managerData, onUpdate, imagePreview
               Click to upload profile picture
             </label>
           </div>
+          
           <Input
-            placeholder="Name"
-            value={managerData.name}
-            onChange={(e) => onUpdate({ ...managerData, name: e.target.value })}
+            placeholder="Full Name"
+            value={formData.fullName}
+            onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
           />
+          
           <Input
             type="email"
             placeholder="Email"
-            value={managerData.email}
-            onChange={(e) =>
-              onUpdate({ ...managerData, email: e.target.value })
-            }
+            value={formData.email}
+            onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
           />
-          <Button
-            onClick={() => {
-              onUpdate(managerData);
-              onClose();
-            }}
-            className="w-full"
-          >
+          
+          <Input
+            placeholder="Phone Number"
+            value={formData.phone_no}
+            onChange={(e) => setFormData(prev => ({ ...prev, phone_no: e.target.value }))}
+          />
+          
+          {/* Address Fields */}
+          <div className="space-y-2">
+            <Input
+              placeholder="Street"
+              value={formData.address.street}
+              onChange={(e) => setFormData(prev => ({
+                ...prev,
+                address: { ...prev.address, street: e.target.value }
+              }))}
+            />
+            <Input
+              placeholder="City"
+              value={formData.address.city}
+              onChange={(e) => setFormData(prev => ({
+                ...prev,
+                address: { ...prev.address, city: e.target.value }
+              }))}
+            />
+            <Input
+              placeholder="State"
+              value={formData.address.state}
+              onChange={(e) => setFormData(prev => ({
+                ...prev,
+                address: { ...prev.address, state: e.target.value }
+              }))}
+            />
+            <Input
+              placeholder="Pincode"
+              value={formData.address.pincode}
+              onChange={(e) => setFormData(prev => ({
+                ...prev,
+                address: { ...prev.address, pincode: e.target.value }
+              }))}
+            />
+          </div>
+
+          <Button type="submit" className="w-full">
             <Check className="mr-2 h-4 w-4" />
             Save Changes
           </Button>
-        </div>
+        </form>
       </DialogContent>
     </Dialog>
   );

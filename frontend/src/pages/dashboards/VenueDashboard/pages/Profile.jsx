@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { toast } from "sonner";
 import ManagerHeader from '../components/ManagerHeader';
 import QuickStats from '../components/QuickStats';
@@ -9,10 +10,18 @@ import AWSHelper from '@/utils/awsHelper';
 
 const VenueManagerDashboard = () => {
   const [managerData, setManagerData] = useState({
-    name: 'John Smith',
-    email: 'john@comedyclub.com',
-    monthlyRevenue: 156000,
-    profileImage: '/api/placeholder/400/400'
+    fullName: '',
+    email: '',
+    phone_no: '',
+    address: {
+      street: '',
+      city: '',
+      state: '',
+      pincode: '',
+      latitude: '',
+      longitude: ''
+    },
+    profile_image: '/api/placeholder/400/400'
   });
 
   const [venues, setVenues] = useState([
@@ -43,18 +52,72 @@ const VenueManagerDashboard = () => {
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
   const [isManageVenueOpen, setIsManageVenueOpen] = useState(false);
   const [selectedVenue, setSelectedVenue] = useState(null);
-  const [imagePreview, setImagePreview] = useState(managerData.profileImage);
+  const [imagePreview, setImagePreview] = useState(managerData.profile_image);
+
+  const fetchManagerData = async () => {
+    try {
+      const response = await axios.get(
+        'http://localhost:8000/api/venuemanagers/current-user',
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+          }
+        }
+      );
+
+      if (!response.data?.data) {
+        throw new Error('Invalid response data');
+      }
+
+      const userData = response.data.data;
+      setManagerData({
+        fullName: userData.fullName,
+        email: userData.email,
+        phone_no: userData.phone_no,
+        address: userData.address || {
+          street: '',
+          city: '',
+          state: '',
+          pincode: '',
+          latitude: '',
+          longitude: ''
+        },
+        profile_image: userData.profile_image || '/api/placeholder/400/400'
+      });
+      setImagePreview(userData.profile_image || '/api/placeholder/400/400');
+    } catch (error) {
+      console.error('Error fetching manager data:', error);
+      toast.error('Failed to load profile data');
+    }
+  };
+
+  useEffect(() => {
+    fetchManagerData();
+  }, []);
 
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
       try {
-        const url = await AWSHelper.upload(
-          file, 
-          managerData.name.replace(/\s+/g, '-').toLowerCase()
+        // First upload to AWS
+        const imageUrl = await AWSHelper.upload(
+          file,
+          managerData.fullName.replace(/\s+/g, '-').toLowerCase()
         );
-        setImagePreview(url);
-        setManagerData(prev => ({ ...prev, profileImage: url }));
+
+        // Then update the profile with the AWS URL
+        const response = await axios.patch(
+          'http://localhost:8000/api/venuemanagers/update-details',
+          { profile_image: imageUrl },
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+            }
+          }
+        );
+
+        setImagePreview(imageUrl);
+        setManagerData(prev => ({ ...prev, profile_image: imageUrl }));
         toast.success('Profile image updated successfully');
       } catch (error) {
         console.error('Error uploading image:', error);
@@ -65,16 +128,35 @@ const VenueManagerDashboard = () => {
 
   const handleProfileUpdate = async (newData) => {
     try {
-      if (newData.profileImage && newData.profileImage !== managerData.profileImage) {
-        // Image was already uploaded in handleImageUpload
-        delete newData.profileImage;
-      }
+      // Create update object with only fields that have values
+      const updateData = {};
       
-      setManagerData(prev => ({ ...prev, ...newData }));
+      if (newData.fullName?.trim()) updateData.fullName = newData.fullName;
+      if (newData.email?.trim()) updateData.email = newData.email;
+      if (newData.phone_no?.trim()) updateData.phone_no = newData.phone_no;
+      
+      // Only include address if at least one field has a value
+      const addressFields = Object.entries(newData.address || {}).filter(([_, value]) => value?.trim());
+      if (addressFields.length > 0) {
+        updateData.address = Object.fromEntries(addressFields);
+      }
+
+      const response = await axios.patch(
+        'http://localhost:8000/api/venuemanagers/update-details',
+        updateData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+          }
+        }
+      );
+
+      await fetchManagerData();
       toast.success('Profile Updated Successfully');
     } catch (error) {
-      console.error('Error updating profile:', error);
-      toast.error('Failed to update profile');
+      console.error('Error updating profile:', error.response?.data || error);
+      toast.error(error.response?.data?.message || 'Failed to update profile');
     }
   };
 

@@ -57,11 +57,20 @@ function StaffSignin() {
         email: formData.email,
         password: formData.password,
       });
-      const { accessToken } = response.data.data;
-      const userData = response.data.data[formData.userType]; // gets artist/venue/admin data
-      localStorage.setItem("accessToken", accessToken);
-      localStorage.setItem("userRole", roleMap[formData.userType]);
-      localStorage.setItem("userId", userData._id);
+      
+      if (!response.data || !response.data.data) {
+        throw new Error('Invalid response data');
+      }
+
+      const { accessToken, user } = response.data.data;
+      
+      if (!accessToken || !user) {
+        throw new Error('Missing token or user data');
+      }
+
+      localStorage.setItem('accessToken', accessToken);
+      localStorage.setItem('userRole', roleMap[formData.userType]);
+      localStorage.setItem('userId', user._id);
 
       const routeMap = {
         venue: "/venue",

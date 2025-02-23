@@ -94,12 +94,13 @@ const approveEventByAdmin = async (req, res) => {
     try {
 
         const { eventId } = req.body;
+        const {adminId} = req.body;
 
         if(!eventId){
             return res.status(404).json({ message: "Invalid eventId" });
         }
 
-        const admin = await Admin.findById(req.user?._id);
+        const admin = await Admin.findById(adminId);
         if (!admin) {
             return res.status(404).json({ message: "Admin not found" });
         }
@@ -295,14 +296,36 @@ const getPendingEventsAdmin = async (req, res) => {
 
 const getPendingEventsVenueManager = async (req, res) => {
     try {
-        const pendingEvents = await Event.find({ status: "approved_by_admin", venueId: req.user._id })
-            .populate("primaryArtistId", "fullName")
-            .populate("venueId", "name address");
+        const venueId = req.body.venueId; // Get venue ID from request body
 
-        res.status(200).json({ success: true, data: pendingEvents });
+        if (!venueId) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "Venue ID is required" 
+            });
+        }
+
+        const pendingEvents = await Event.find({ 
+            status: "approved_by_admin", 
+            venueId: venueId 
+        })
+        .populate("primaryArtistId", "fullName")
+        .populate("venueId", "name address");
+
+        console.log('Found events:', pendingEvents); // Add debugging log
+
+        res.status(200).json({ 
+            success: true, 
+            data: pendingEvents,
+            message: "Pending events fetched successfully"
+        });
     } catch (error) {
         console.error("Error fetching pending events for venue manager:", error);
-        res.status(500).json({ success: false, message: "Server error" });
+        res.status(500).json({ 
+            success: false, 
+            message: "Server error",
+            error: error.message 
+        });
     }
 };
 
