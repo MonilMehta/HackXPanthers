@@ -13,3 +13,4 @@ export const getEventById = `${SERVER_API}/events/getEventById`;
 export const proposeNegotiation = `${SERVER_API}/events/proposeNegotiation`;
 export const respondToNegotiation = `${SERVER_API}/events/respondToNegotiation`;
 export const getAllEvents = `${SERVER_API}/events/getAllEvents`;
+export const getArtistEvents = `${SERVER_API}/events/getArtistEvents`;
