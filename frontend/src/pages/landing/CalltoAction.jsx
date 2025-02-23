@@ -35,7 +35,7 @@ export const CallToAction = () => {
               variant="outline"
               className="border-yellow-400  hover:bg-yellow-400/10 px-8 py-6 text-xl"
             >
-              Join the Revolution
+              Join the Revolution !!
             </Button>
           </div>
         </motion.div>
