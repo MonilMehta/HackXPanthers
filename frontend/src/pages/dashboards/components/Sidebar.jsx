@@ -5,6 +5,8 @@ import * as Icons from "lucide-react";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import menuData from "./Data.json";
 import { cn } from "@/lib/utils";
+import logo2 from "../../../assets/logo.svg";
+import logo1 from "../../../assets/ettaralogo.jpg";
 
 const MenuItem = ({ item, isActive, Icon }) => (
   <motion.div
@@ -60,7 +62,7 @@ const MenuItem = ({ item, isActive, Icon }) => (
       {/* Text */}
       <span
         className={cn(
-          "font-medium text-sm",
+          "font-medium text-md text-bold",
           "transition-colors duration-300",
           isActive ? "text-primary" : "text-muted-foreground",
           "group-hover:text-primary"
@@ -119,11 +121,11 @@ const Sidebar = () => {
       <motion.div
         className="flex items-center space-x-2 mb-8 p-2 rounded-lg transition-all duration-300 hover:bg-primary/5"
         whileHover={{ scale: 1.02 }}
+        onClick={() => navigate("/")}
       >
-        <Icons.Laugh className="h-8 w-8 text-primary" />
-        <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">
-          ComedyConnect
-        </h1>
+        <img src={logo1} alt="logo" className="h-20 w-auto rounded-lg" />
+        <h1>X</h1>
+        <img src={logo2} alt="logo" className="h-20 w-auto rounded-lg" />
       </motion.div>
 
       <nav className="flex-1">
