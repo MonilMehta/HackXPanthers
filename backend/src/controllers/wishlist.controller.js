@@ -70,7 +70,9 @@ const getAllWishlists = asyncHandler(async (req, res) => {
                 }, {
                     path: "primaryArtistId",
                     select: "fullName stageName profile_image"
-                }]
+                }],
+                // Add selection for event time and price fields
+                select: "title description startDate endDate eventTime seatPricing status"
             })
             .populate("userId", "username email");
 
@@ -80,15 +82,12 @@ const getAllWishlists = asyncHandler(async (req, res) => {
                 .json(new ApiResponse(200, [], "No wishlist found"));
         }
 
-        // Format response with nested details
+        // Format response with nested details including time and price
         const formattedWishlist = {
             ...wishlist.toObject(),
             events: wishlist.events.map(event => ({
-                _id: event._id,
-                title: event.title,
                 description: event.description,
-                startDate: event.startDate,
-                endDate: event.endDate,
+                eventDate: event.eventDate,
                 venue: {
                     name: event.venueId?.name,
                     address: event.venueId?.address,
