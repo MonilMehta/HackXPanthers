@@ -20,17 +20,18 @@ const Wishlist = () => {
   const fetchWishlist = async () => {
     try {
       const accessToken = localStorage.getItem("accessToken");
+      const userId = localStorage.getItem("userId");
+
       if (!accessToken) {
         toast.error("Please login to view wishlist");
         navigate("/signin");
         return;
       }
-      const userId = localStorage.getItem("userId");
+
       const response = await axios.post(
         getAllWishlists,
         {
-          // userId: `${userId}`
-          userId: "67ba01093f40640a516678ce",
+          userId: userId,
         },
         {
           headers: {
@@ -40,26 +41,16 @@ const Wishlist = () => {
         }
       );
 
-      console.log("Wishlist Response:", response.data);
+      console.log("Raw API Response:", response.data);
 
-      if (response.data.success) {
-        if (response.data.data && response.data.data.events) {
-          setWishlistItems(response.data.data.events);
-          console.log("Processed Events:", response.data.data.events);
-          toast.success("Wishlist fetched successfully");
-        } else {
-          setWishlistItems([]);
-          console.log("No wishlist items found");
-        }
+      if (response.data.success && response.data.data) {
+        const events = response.data.data.events || [];
+        console.log("Events to render:", events);
+        setWishlistItems(events);
       }
     } catch (error) {
       console.error("Error fetching wishlist:", error);
-      toast.error(error.response?.data?.message || "Failed to fetch wishlist");
-
-      if (error.response?.status === 401) {
-        localStorage.removeItem("accessToken");
-        navigate("/signin");
-      }
+      toast.error("Failed to fetch wishlist");
     } finally {
       setLoading(false);
     }
@@ -125,12 +116,11 @@ const Wishlist = () => {
                   <h3 className="text-white text-xl font-bold">
                     {event.title}
                   </h3>
-                  {event.venueId && (
+                  {event.venue && (
                     <p className="text-white/80 text-sm flex items-center gap-1">
                       <MapPin className="w-4 h-4" />
-                      {event.venueId.name || "Venue name not available"}
-                      {event.venueId.address &&
-                        `, ${event.venueId.address.city}`}
+                      {event.venue.name}
+                      {event.venue.address && `, ${event.venue.address.city}`}
                     </p>
                   )}
                 </div>
