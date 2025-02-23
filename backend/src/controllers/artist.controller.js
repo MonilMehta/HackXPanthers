@@ -104,38 +104,47 @@ const loginArtist = asyncHandler( async ( req, res ) => {
 
 const getOneArtist = async (req, res) => {
   try {
-    const { artistId } = req.body; // Get artist ID from request body
+    // Check both body and query for artistId
+    const artistId = req.body.artistId || req.query.artistId;
+    console.log("Received artistId:", artistId);
 
-    // Find the artist by ID and exclude sensitive fields
-    const artistData = await Artist.findById(artistId)
-      // .populate({
-      //   path: "Reviews",
-      //   select: "-__v", // Exclude version field from Reviews
-      // })
-      .select("-password -refreshToken -__v"); // Exclude sensitive fields
-
-    // If artist is not found
-    if (!artistData) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Artist not found" });
+    if (!artistId) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Artist ID is required" 
+      });
     }
 
-    // Count the number of followers for the artist
+    const artistData = await Artist.findById(artistId)
+      .select("-password -refreshToken -__v");
+
+    if (!artistData) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Artist not found" 
+      });
+    }
+
     const followersCount = await Followers.countDocuments({
       artist: artistId,
     });
 
-    // Attach followersCount to artistData
     const responseData = {
       ...artistData.toObject(),
       followersCount,
     };
 
-    res.status(200).json({ success: true, data: responseData });
+    res.status(200).json({ 
+      success: true, 
+      data: responseData 
+    });
   } catch (error) {
-    console.error("Error fetching artist:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+    console.error("Error in getOneArtist:", error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Server error", 
+      error: error.message 
+    });
   }
 };
 
