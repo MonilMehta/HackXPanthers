@@ -23,6 +23,7 @@ import Threater from "./Threater";
 import { createWishlist } from "@/api/whistlist.api";
 import { toast } from "sonner";
 import { jwtDecode } from "jwt-decode"; // Change this line
+import BookingModal from "../components/BookingModal";
 
 const Booking = () => {
   const { id } = useParams();
@@ -34,6 +35,7 @@ const Booking = () => {
   const [ticketCount, setTicketCount] = useState(1);
   const [promoCode, setPromoCode] = useState("");
   const [isPromoApplied, setIsPromoApplied] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchEventDetails = async () => {
@@ -128,20 +130,33 @@ const Booking = () => {
     doc.save(`comedy-club-ticket-${paymentId}.pdf`);
   };
 
-  const handlePayment = async () => {
+  const handlePayment = async (paymentDetails) => {
     try {
-      // Call Razorpay component with payment details
-      await Razorpay(
-        calculateTotal(),
-        "userId", // Replace with actual user ID
-        (paymentId) => {
+      const userId = localStorage.getItem("userId");
+      const accessToken = localStorage.getItem("accessToken");
+
+      if (!userId || !accessToken) {
+        toast.error("Please login to continue");
+        navigate("/signin");
+        return;
+      }
+
+      return await Razorpay({
+        amount: paymentDetails.amount,
+        userId,
+        eventId: event._id,
+        seats: paymentDetails.seats,
+        ticketCount: paymentDetails.ticketCount,
+        discount: paymentDetails.discount,
+        promoCode: paymentDetails.promoCode,
+        onSuccess: (paymentId) => {
           generateInvoice(paymentId);
-          // You can add more success handlers here
           navigate("/customer/tickets");
-        }
-      );
+        },
+      });
     } catch (error) {
       console.error("Payment failed:", error);
+      throw error;
     }
   };
 
@@ -228,7 +243,7 @@ const Booking = () => {
         eventId: event._id,
         accessToken: accessToken,
       });
-      const userId=localStorage.getItem("userId");
+      const userId = localStorage.getItem("userId");
       // Make sure we're sending the right data structure
       const response = await axios({
         method: "post",
@@ -292,81 +307,15 @@ const Booking = () => {
     <div className="glass-card rounded-xl p-6 space-y-6 sticky top-6">
       <h2 className="text-2xl font-bold">Book Tickets</h2>
 
-      {/* Ticket Quantity */}
-      <div className="space-y-2">
-        <Label>Number of Tickets</Label>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setTicketCount(Math.max(1, ticketCount - 1))}
-          >
-            -
-          </Button>
-          <span className="w-12 text-center">{ticketCount}</span>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setTicketCount(ticketCount + 1)}
-          >
-            +
-          </Button>
-        </div>
-      </div>
-
-      {/* Promo Code */}
-      <div className="space-y-2">
-        <Label>Promo Code</Label>
-        <div className="flex gap-2">
-          <Input
-            placeholder="Enter promo code"
-            value={promoCode}
-            onChange={(e) => setPromoCode(e.target.value)}
-            disabled={isPromoApplied}
-          />
-          <Button
-            variant="secondary"
-            onClick={handlePromoCode}
-            disabled={isPromoApplied || !promoCode}
-          >
-            Apply
-          </Button>
-        </div>
-        {isPromoApplied && (
-          <p className="text-sm text-green-500">5% discount applied!</p>
-        )}
-      </div>
-
-      {/* Price Breakdown */}
-      <div className="space-y-2 border-t pt-4">
-        <div className="flex justify-between">
-          <span>Subtotal</span>
-          <span>₹{event.proposedPrice * ticketCount}</span>
-        </div>
-        {isPromoApplied && (
-          <div className="flex justify-between text-green-500">
-            <span>Discount</span>
-            <span>
-              -₹{(event.proposedPrice * ticketCount * 0.05).toFixed(2)}
-            </span>
-          </div>
-        )}
-        <div className="flex justify-between font-bold text-lg">
-          <span>Total</span>
-          <span>₹{calculateTotal()}</span>
-        </div>
-      </div>
-
       {/* Action Buttons */}
       <div className="space-y-3">
         <Button
           className="w-full"
           size="lg"
-          onClick={handlePayment}
-          disabled={ticketCount < 1}
+          onClick={() => setIsModalOpen(true)}
         >
           <Ticket className="mr-2 h-5 w-5" />
-          Pay ₹{calculateTotal()}
+          Book Now
         </Button>
         <Button
           variant="outline"
@@ -381,6 +330,13 @@ const Booking = () => {
           Share Event
         </Button>
       </div>
+
+      {/* Booking Modal */}
+      <BookingModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        event={event}
+      />
     </div>
   );
 
@@ -513,7 +469,6 @@ const Booking = () => {
           <div className="space-y-6">{renderBookingSection()}</div>
         </div>
       </div>
-      <Threater />
     </div>
   );
 };

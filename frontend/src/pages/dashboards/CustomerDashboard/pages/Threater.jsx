@@ -1,28 +1,54 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-
-const Theater = () => {
+import Razorpay from "../components/Razorpay";
+import { Link as Lk } from "react-router-dom";
+const Theater = ({
+  maxSeats,
+  onSeatSelect,
+  selectedSeats: propSelectedSeats,
+}) => {
   const rows = 7;
   const columns = 7;
   const price = 150; // Price per seat
 
   const occupiedSeats = ["A1", "B5", "C3", "D4"];
-  const [selectedSeats, setSelectedSeats] = useState([]);
+  const [selectedSeats, setSelectedSeats] = useState(propSelectedSeats || []);
+
+  useEffect(() => {
+    if (propSelectedSeats) {
+      setSelectedSeats(propSelectedSeats);
+    }
+  }, [propSelectedSeats]);
 
   const handleSeatClick = (seatId) => {
     if (occupiedSeats.includes(seatId)) return;
 
     setSelectedSeats((prev) => {
+      let newSelection;
       if (prev.includes(seatId)) {
-        return prev.filter((seat) => seat !== seatId);
+        newSelection = prev.filter((seat) => seat !== seatId);
+      } else if (prev.length < maxSeats) {
+        newSelection = [...prev, seatId];
+      } else {
+        newSelection = [...prev.slice(1), seatId]; // Remove first seat and add new one
       }
-      return [...prev, seatId];
+      onSeatSelect(newSelection); // Notify parent component
+      return newSelection;
     });
+  };
+  const getSeatPrice = (seatId) => {
+    const isPremium = seatId.charAt(0) <= "B";
+    return isPremium ? 200 : 150;
+  };
+
+  const calculateTotalSeatPrice = () => {
+    return selectedSeats.reduce((total, seat) => total + getSeatPrice(seat), 0);
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-8">
-      <div className="max-w-5xl mx-auto">
+    <div className="bg-background text-foreground p-4">
+      {/* Modified layout to fit in modal */}
+      <div className="max-w-3xl mx-auto scale-75 origin-top">
         {/* Header with categories */}
         <div className="text-center space-y-4 mb-12">
           <h2 className="text-4xl font-bold text-primary">Select Your Seats</h2>
@@ -149,12 +175,11 @@ const Theater = () => {
             </span>
           </div>
           <div className="flex justify-between text-2xl font-bold mb-6">
-            <span>Total:</span>
-            <span className="text-primary">
-              ₹{selectedSeats.length * price}
-            </span>
+            <span>Seats Total:</span>
+            <span className="text-primary">₹{calculateTotalSeatPrice()}</span>
           </div>
           {selectedSeats.length > 0 && (
+            <Lk  >
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
@@ -164,6 +189,8 @@ const Theater = () => {
             >
               Proceed to Payment
             </motion.button>
+            </Lk>
+
           )}
         </motion.div>
       </div>

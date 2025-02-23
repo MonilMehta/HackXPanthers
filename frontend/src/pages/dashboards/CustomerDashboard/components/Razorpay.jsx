@@ -10,62 +10,82 @@ const loadScript = (src) => {
   });
 };
 
-const Razorpay = async (amount, userId, onSuccess) => {
-  const res = await loadScript("https://checkout.razorpay.com/v1/checkout.js");
+const Razorpay = ({
+  amount,
+  userId,
+  eventId,
+  seats,
+  ticketCount,
+  discount,
+  promoCode,
+  onSuccess,
+}) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const res = await loadScript(
+        "https://checkout.razorpay.com/v1/checkout.js"
+      );
 
-  if (!res) {
-    alert("Failed to load Razorpay SDK");
-    return;
-  }
-
-  const options = {
-    key: "rzp_test_DwptmlE6gLwR5G",
-    currency: "INR",
-    amount: amount * 100,
-    name: "Comedy Club Booking",
-    description: "Event Ticket Purchase",
-    handler: async function (response) {
-      const paymentId = response.razorpay_payment_id;
-
-      // Call the success callback with payment ID
-      if (onSuccess) {
-        onSuccess(paymentId);
+      if (!res) {
+        reject(new Error("Failed to load Razorpay SDK"));
+        return;
       }
 
-      // Send transaction details to backend
-      try {
-        const result = await fetch("/api/bookings", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            userId,
-            amount,
-            paymentId,
-          }),
-        });
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        amount: amount, // amount should already be in paise
+        currency: "INR",
+        name: "Comedy Club",
+        description: `Booking ${ticketCount} tickets`,
+        handler: async function (response) {
+          try {
+            const paymentId = response.razorpay_payment_id;
 
-        const data = await result.json();
-        if (data.success) {
-          alert("Booking confirmed! Check your email for details.");
-        } else {
-          alert("Booking recorded but confirmation email failed.");
-        }
-      } catch (error) {
-        console.error("Error saving booking:", error);
-        alert(
-          "Payment successful but booking confirmation failed. Please contact support."
-        );
-      }
-    },
-    prefill: {
-      name: "Customer",
-    },
-  };
+            // Send transaction details to backend
+            const result = await fetch("/api/bookings", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+              },
+              body: JSON.stringify({
+                userId,
+                eventId,
+                amount: amount / 100, // Convert back to rupees
+                paymentId,
+                seats,
+                ticketCount,
+                discount,
+                promoCode,
+              }),
+            });
 
-  const paymentObject = new window.Razorpay(options);
-  paymentObject.open();
+            const data = await result.json();
+            if (data.success) {
+              onSuccess(paymentId);
+              resolve({ success: true, paymentId });
+            } else {
+              reject(new Error(data.message || "Booking failed"));
+            }
+          } catch (error) {
+            reject(error);
+          }
+        },
+        prefill: {
+          name: "Customer",
+          email: localStorage.getItem("userEmail"),
+        },
+        theme: {
+          color: "#422AFB",
+        },
+      };
+
+      const paymentObject = new window.Razorpay(options);
+      paymentObject.open();
+    } catch (error) {
+      reject(error);
+    }
+  });
 };
 
 export default Razorpay;

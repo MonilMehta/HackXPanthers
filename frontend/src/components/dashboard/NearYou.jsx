@@ -205,7 +205,7 @@ const NearYou = () => {
                 <Button
                   variant="secondary"
                   size="icon"
-                  onClick={() => navigate(`/customer/events/${event._id}`)}
+                  onClick={() => navigate(`/customer/booking/${event._id}`)}
                 >
                   <ArrowRight className="h-4 w-4" />
                 </Button>
