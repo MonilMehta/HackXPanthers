@@ -114,8 +114,8 @@ const approveEventByAdmin = async (req, res) => {
     try {
 
         const { eventId } = req.body;
-        const {adminId} = req.body;
-
+        const adminId = req.user?._id;
+        console.log(req.user)
         if(!eventId){
             return res.status(404).json({ message: "Invalid eventId" });
         }
