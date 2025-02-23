@@ -510,5 +510,25 @@ const getAllEvents = async (req, res) => {
     }
 };
 
+const getArtistEvents = async (req, res) => {
+    try {
+        const artistId = req.user._id;
+        const events = await Event.find({ primaryArtistId: artistId })
+            .populate("venueId", "name address")
+            .sort({ createdAt: -1 });
 
-export { getAllEvents, createEvent, getEventDetails, approveEventByAdmin, approveEventByVenueManager, rejectEvent, getEventsByDate, filterEventsByType, getPendingEventsAdmin, getPendingEventsVenueManager, getEventById, proposeNegotiation, respondToNegotiation };
+        res.status(200).json({
+            success: true,
+            data: events
+        });
+    } catch (error) {
+        console.error("Error fetching artist events:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to fetch events",
+            error: error.message
+        });
+    }
+};
+
+export { getAllEvents, createEvent, getEventDetails, approveEventByAdmin, approveEventByVenueManager, rejectEvent, getEventsByDate, filterEventsByType, getPendingEventsAdmin, getPendingEventsVenueManager, getEventById, proposeNegotiation, respondToNegotiation, getArtistEvents };
