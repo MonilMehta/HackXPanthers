@@ -9,7 +9,7 @@ router.route("/register").post(registerUser);
 router.route("/login").post(loginUser);
 
 router.route("/getUsers").get(getAllUsers);
- router.route("/getOneUser").get(getOneUser);
+ router.route("/getOneUser").post(getOneUser);
 // secured routes
 
 router.route("/logout").post(verifyJWT ,logoutUser)
