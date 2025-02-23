@@ -78,6 +78,8 @@ function StaffSignin() {
         administrator: "/admin",
       };
 
+      console.log("Logged in successfully:", userData);
+
       navigate(routeMap[formData.userType]);
     } catch (error) {
       console.error("Error logging in:", error.response?.data || error.message);

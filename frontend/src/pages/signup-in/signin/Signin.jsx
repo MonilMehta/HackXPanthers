@@ -34,6 +34,7 @@ function Signin() {
       const { accessToken } = response.data.data;
       console.log(accessToken);
       localStorage.setItem("accessToken", accessToken);
+      localStorage.setItem("userId", response.data.data.user._id);
       localStorage.setItem("userRole", "CUSTOMER");
       // Handle success
       navigate("/customer");

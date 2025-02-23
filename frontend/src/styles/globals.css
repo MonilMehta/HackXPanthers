@@ -19,7 +19,7 @@
     --muted-foreground: #666666;
     --border: #d3d3d3;
   }
-  
+
   .dark {
     /* Dark mode colors */
     --background: #292424;
@@ -35,14 +35,13 @@
     --muted: #666666;
     --muted-foreground: #aaaaaa;
     --border: #292424;
-    
+
     /* Additional colors for dark theme */
     --highlight: #f5e06d;
     --highlight-foreground: #000000;
     --input: #0f0f0f;
     --ring: #ffd700;
   }
-  
 }
 
 @layer components {
@@ -117,18 +116,26 @@ body {
 }
 
 .show-card::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(to right bottom, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  background: linear-gradient(
+    to right bottom,
+    rgba(255, 255, 255, 0.1),
+    rgba(255, 255, 255, 0.05)
+  );
   z-index: 0;
 }
 
 .dark .show-card::before {
-  background: linear-gradient(to right bottom, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.1));
+  background: linear-gradient(
+    to right bottom,
+    rgba(0, 0, 0, 0.2),
+    rgba(0, 0, 0, 0.1)
+  );
 }
 
 /* Venue Carousel Styles */

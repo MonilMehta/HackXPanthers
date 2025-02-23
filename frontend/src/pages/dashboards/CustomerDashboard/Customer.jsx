@@ -7,7 +7,7 @@ import Profile from "./pages/Profile";
 import { Route,Routes } from "react-router-dom";
 import Events from "./pages/Events";
 import Booking from "./pages/Booking";
-
+import Wishlist from "./pages/Wishlist";
 const Customer = () => {
   return (
     <div className="flex min-h-screen bg-background">
@@ -19,6 +19,7 @@ const Customer = () => {
         <Route path="tickets" element={<Ticket />} />
         <Route path="following" element={<Following />} />
         <Route path="profile" element={<Profile />} />
+        <Route path="wishlist" element={<Wishlist />} />
       </Routes>
     </div>
   );

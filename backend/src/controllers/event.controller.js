@@ -24,12 +24,32 @@ const createEvent = async (req, res) => {
 
         // Validate required fields
         if (!title || !description || !eventType || !eventDate || !minAge || !mediaAssets || !venueId || !startTime || !endTime) {
-            return res.status(400).json({ message: "Please provide all required fields." });
+            return res.status(400).json({ success: false, message: "Please provide all required fields." });
         }
 
-        // Validate either proposedPrice or percentageCommission
-        if (!proposedPrice && !percentageCommission) {
-            return res.status(400).json({ message: "Please provide either a proposed price or a percentage commission." });
+        // Check for time slot conflicts
+        const conflictingEvent = await Event.findOne({
+            venueId,
+            eventDate,
+            status: { $in: ["approved", "negotiation_pending", "pending_approval", "approved_by_admin"] },
+            $or: [
+                {
+                    startTime: { $lt: endTime },
+                    endTime: { $gt: startTime }
+                }
+            ]
+        });
+
+        if (conflictingEvent) {
+            return res.status(409).json({
+                success: false,
+                message: "This venue is already booked for this time slot",
+                conflictDetails: {
+                    existingEvent: conflictingEvent.title,
+                    date: conflictingEvent.eventDate,
+                    time: `${conflictingEvent.startTime} - ${conflictingEvent.endTime}`
+                }
+            });
         }
 
         // Create the event
@@ -59,7 +79,7 @@ const createEvent = async (req, res) => {
         });
     } catch (error) {
         console.error("Event creation error:", error);
-        res.status(500).json({ message: "Error creating event.", error: error.message });
+        res.status(500).json({ success: false, message: "Error creating event.", error: error.message });
     }
 };
 

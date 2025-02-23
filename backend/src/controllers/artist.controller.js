@@ -92,7 +92,7 @@ const loginArtist = asyncHandler( async ( req, res ) => {
         new ApiResponse(
             200,
             {
-                artist: loggedInArtist,
+                user: loggedInArtist,
                 accessToken,
                 refreshToken
             },

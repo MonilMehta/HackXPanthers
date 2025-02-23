@@ -1,5 +1,11 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import React, { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -7,29 +13,39 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { 
-  Upload, 
-  X, 
-  MapPin, 
-  Users, 
-  Building2, 
+import {
+  Upload,
+  X,
+  MapPin,
+  Users,
+  Building2,
   Plus,
   Sparkles,
   Image as ImageIcon,
   ArrowLeft,
   ArrowRight,
-  Check
+  Check,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import AWSHelper from '@/utils/awsHelper';
-
+import AWSHelper from "@/utils/awsHelper";
+import { registerVenue } from "@/api/venue.api";
 const COMMON_AMENITIES = [
-  "Free WiFi", "Parking", "Air Conditioning", "Catering Service",
-  "Audio System", "Projector", "Stage", "Security", "Restrooms",
-  "Elevator Access", "Wheelchair Access", "Backup Generator",
-  "Green Room", "Kitchen Facilities"
+  "Free WiFi",
+  "Parking",
+  "Air Conditioning",
+  "Catering Service",
+  "Audio System",
+  "Projector",
+  "Stage",
+  "Security",
+  "Restrooms",
+  "Elevator Access",
+  "Wheelchair Access",
+  "Backup Generator",
+  "Green Room",
+  "Kitchen Facilities",
 ];
 
 const StepIndicator = ({ currentStep }) => (
@@ -37,17 +53,23 @@ const StepIndicator = ({ currentStep }) => (
     <Progress value={currentStep === 1 ? 50 : 100} className="h-2" />
     <div className="flex justify-between mt-2">
       <div className="flex items-center">
-        <div className={`rounded-full h-8 w-8 flex items-center justify-center ${
-          currentStep >= 1 ? 'bg-primary text-primary-foreground' : 'bg-muted'
-        }`}>
+        <div
+          className={`rounded-full h-8 w-8 flex items-center justify-center ${
+            currentStep >= 1 ? "bg-primary text-primary-foreground" : "bg-muted"
+          }`}
+        >
           <Check className="h-5 w-5" />
         </div>
         <span className="ml-2 text-sm font-medium">Basic Details</span>
       </div>
       <div className="flex items-center">
-        <div className={`rounded-full h-8 w-8 flex items-center justify-center ${
-          currentStep === 2 ? 'bg-primary text-primary-foreground' : 'bg-muted'
-        }`}>
+        <div
+          className={`rounded-full h-8 w-8 flex items-center justify-center ${
+            currentStep === 2
+              ? "bg-primary text-primary-foreground"
+              : "bg-muted"
+          }`}
+        >
           {currentStep === 2 ? <Check className="h-5 w-5" /> : "2"}
         </div>
         <span className="ml-2 text-sm font-medium">Media & Amenities</span>
@@ -59,25 +81,26 @@ const StepIndicator = ({ currentStep }) => (
 const AddVenue = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
-    name: '',
+    name: "",
     capacity: 100,
-    address: '',
-    description: '',
-    location: '',
+    address: "",
+    description: "",
+    location: "",
   });
 
   const [media, setMedia] = useState([]);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedAmenities, setSelectedAmenities] = useState([]);
-  const [customAmenity, setCustomAmenity] = useState('');
+  const [customAmenity, setCustomAmenity] = useState("");
   const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
 
   const validateStep1 = () => {
     const newErrors = {};
-    if (!formData.name.trim()) newErrors.name = 'Venue name is required';
-    if (!formData.address.trim()) newErrors.address = 'Address is required';
-    if (!formData.location.trim()) newErrors.location = 'Location link is required';
+    if (!formData.name.trim()) newErrors.name = "Venue name is required";
+    if (!formData.address.trim()) newErrors.address = "Address is required";
+    if (!formData.location.trim())
+      newErrors.location = "Location link is required";
     return newErrors;
   };
 
@@ -88,7 +111,7 @@ const AddVenue = () => {
       setErrors({});
     } else {
       setErrors(errors);
-      toast.error('Please fill in all required fields');
+      toast.error("Please fill in all required fields");
     }
   };
 
@@ -98,20 +121,20 @@ const AddVenue = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
   const handleCapacityChange = (value) => {
-    setFormData(prev => ({ ...prev, capacity: value[0] }));
+    setFormData((prev) => ({ ...prev, capacity: value[0] }));
   };
 
   const handleMediaUpload = async (e) => {
     const files = Array.from(e.target.files);
     const maxFiles = 15;
-    
+
     if (media.length + files.length > maxFiles) {
       toast.error(`You can only upload up to ${maxFiles} files`);
       return;
@@ -119,12 +142,18 @@ const AddVenue = () => {
 
     for (const file of files) {
       try {
-        const url = await AWSHelper.upload(file, formData.name.replace(/\s+/g, '-').toLowerCase());
-        setMedia(prev => [...prev, {
+        const url = await AWSHelper.upload(
           file,
-          type: file.type.startsWith('image/') ? 'image' : 'video',
-          url
-        }]);
+          formData.name.replace(/\s+/g, "-").toLowerCase()
+        );
+        setMedia((prev) => [
+          ...prev,
+          {
+            file,
+            type: file.type.startsWith("image/") ? "image" : "video",
+            url,
+          },
+        ]);
       } catch (error) {
         toast.error(`Failed to upload ${file.name}`);
       }
@@ -132,29 +161,36 @@ const AddVenue = () => {
   };
 
   const removeMedia = (index) => {
-    setMedia(prev => prev.filter((_, i) => i !== index));
+    setMedia((prev) => prev.filter((_, i) => i !== index));
   };
 
   const toggleAmenity = (amenity) => {
-    setSelectedAmenities(prev => 
+    setSelectedAmenities((prev) =>
       prev.includes(amenity)
-        ? prev.filter(a => a !== amenity)
+        ? prev.filter((a) => a !== amenity)
         : [...prev, amenity]
     );
   };
 
   const addCustomAmenity = () => {
-    if (customAmenity.trim() && !selectedAmenities.includes(customAmenity.trim())) {
-      setSelectedAmenities(prev => [...prev, customAmenity.trim()]);
-      setCustomAmenity('');
+    if (
+      customAmenity.trim() &&
+      !selectedAmenities.includes(customAmenity.trim())
+    ) {
+      setSelectedAmenities((prev) => [...prev, customAmenity.trim()]);
+      setCustomAmenity("");
     }
   };
 
   const handleGenerateDescription = async () => {
     setIsGeneratingDescription(true);
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    const generatedDescription = `This stunning venue located in the heart of the city offers a spacious setting with ${formData.capacity} person capacity. Featuring ${selectedAmenities.slice(0, 3).join(', ')} and more amenities, it's perfect for any event.`;
-    setFormData(prev => ({ ...prev, description: generatedDescription }));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    const generatedDescription = `This stunning venue located in the heart of the city offers a spacious setting with ${
+      formData.capacity
+    } person capacity. Featuring ${selectedAmenities
+      .slice(0, 3)
+      .join(", ")} and more amenities, it's perfect for any event.`;
+    setFormData((prev) => ({ ...prev, description: generatedDescription }));
     setIsGeneratingDescription(false);
     toast.success("Description generated!");
   };
@@ -164,25 +200,25 @@ const AddVenue = () => {
     setIsSubmitting(true);
     try {
       // Convert the media array to URLs only
-      const mediaUrls = media.map(m => m.url);
-      
+      const mediaUrls = media.map((m) => m.url);
+
       const venueData = {
         ...formData,
         media: mediaUrls,
-        amenities: selectedAmenities
+        amenities: selectedAmenities,
       };
 
       // Your API call to save venue data
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise((resolve) => setTimeout(resolve, 1500));
       toast.success("Venue added successfully!");
-      
+
       // Reset form
       setFormData({
-        name: '',
+        name: "",
         capacity: 100,
-        address: '',
-        description: '',
-        location: '',
+        address: "",
+        description: "",
+        location: "",
       });
       setMedia([]);
       setSelectedAmenities([]);
@@ -213,25 +249,34 @@ const AddVenue = () => {
             {currentStep === 1 ? (
               <div className="space-y-8">
                 <div>
-                  <h3 className="text-lg font-semibold mb-4">Basic Information</h3>
+                  <h3 className="text-lg font-semibold mb-4">
+                    Basic Information
+                  </h3>
                   <div className="space-y-4">
                     <div>
                       <Label htmlFor="name">Venue Name</Label>
-                      <Input 
+                      <Input
                         id="name"
-                        placeholder="Enter venue name" 
+                        placeholder="Enter venue name"
                         name="name"
                         value={formData.name}
                         onChange={handleInputChange}
-                        className={errors.name ? 'border-red-500 rounded' : 'rounded'}
+                        className={
+                          errors.name ? "border-red-500 rounded" : "rounded"
+                        }
                       />
                       {errors.name && (
-                        <span className="text-sm text-red-500">{errors.name}</span>
+                        <span className="text-sm text-red-500">
+                          {errors.name}
+                        </span>
                       )}
                     </div>
 
                     <div>
-                      <Label htmlFor="capacity" className="flex items-center gap-2">
+                      <Label
+                        htmlFor="capacity"
+                        className="flex items-center gap-2"
+                      >
                         <Users className="h-4 w-4" />
                         Capacity: {formData.capacity} people
                       </Label>
@@ -253,34 +298,47 @@ const AddVenue = () => {
 
                     <div>
                       <Label htmlFor="address">Address</Label>
-                      <Textarea 
+                      <Textarea
                         id="address"
-                        placeholder="Full venue address" 
+                        placeholder="Full venue address"
                         name="address"
                         value={formData.address}
                         onChange={handleInputChange}
-                        className={`min-h-[100px] ${errors.address ? 'border-red-500 rounded' : 'rounded'}`}
+                        className={`min-h-[100px] ${
+                          errors.address ? "border-red-500 rounded" : "rounded"
+                        }`}
                       />
                       {errors.address && (
-                        <span className="text-sm text-red-500">{errors.address}</span>
+                        <span className="text-sm text-red-500">
+                          {errors.address}
+                        </span>
                       )}
                     </div>
 
                     <div>
-                      <Label htmlFor="location" className="flex items-center gap-2">
+                      <Label
+                        htmlFor="location"
+                        className="flex items-center gap-2"
+                      >
                         <MapPin className="h-4 w-4" />
                         Google Maps Link
                       </Label>
-                      <Input 
+                      <Input
                         id="location"
-                        placeholder="Paste Google Maps location link" 
+                        placeholder="Paste Google Maps location link"
                         name="location"
                         value={formData.location}
                         onChange={handleInputChange}
-                        className={errors.location ? 'border-red-500 rounded mt-1' : 'rounded mt-1'}
+                        className={
+                          errors.location
+                            ? "border-red-500 rounded mt-1"
+                            : "rounded mt-1"
+                        }
                       />
                       {errors.location && (
-                        <span className="text-sm text-red-500">{errors.location}</span>
+                        <span className="text-sm text-red-500">
+                          {errors.location}
+                        </span>
                       )}
                     </div>
                   </div>
@@ -312,11 +370,11 @@ const AddVenue = () => {
                         className="hidden rounded"
                         onChange={handleMediaUpload}
                       />
-                      <Button 
+                      <Button
                         type="button"
-                        variant="outline" 
+                        variant="outline"
                         className="w-full"
-                        onClick={() => document.getElementById('media').click()}
+                        onClick={() => document.getElementById("media").click()}
                       >
                         <ImageIcon className="mr-2 h-4 w-4" />
                         Upload Photos & Videos
@@ -330,7 +388,7 @@ const AddVenue = () => {
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         {media.map((item, index) => (
                           <div key={index} className="relative group">
-                            {item.type === 'image' ? (
+                            {item.type === "image" ? (
                               <img
                                 src={item.url}
                                 alt={`Preview ${index}`}
@@ -369,15 +427,20 @@ const AddVenue = () => {
                       {COMMON_AMENITIES.map((amenity) => (
                         <Badge
                           key={amenity}
-                          variant={selectedAmenities.includes(amenity) ? "default" : "outline"}
+                          variant={
+                            selectedAmenities.includes(amenity)
+                              ? "default"
+                              : "outline"
+                          }
                           className="cursor-pointer hover:bg-primary/90"
                           onClick={() => toggleAmenity(amenity)}
                         >
                           {amenity}
-                          {selectedAmenities.includes(amenity) ? 
-                            <X className="ml-1 h-3 w-3" /> : 
+                          {selectedAmenities.includes(amenity) ? (
+                            <X className="ml-1 h-3 w-3" />
+                          ) : (
                             <Plus className="ml-1 h-3 w-3" />
-                          }
+                          )}
                         </Badge>
                       ))}
                     </div>
@@ -386,9 +449,11 @@ const AddVenue = () => {
                         placeholder="Add custom amenity"
                         value={customAmenity}
                         onChange={(e) => setCustomAmenity(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && addCustomAmenity()}
+                        onKeyPress={(e) =>
+                          e.key === "Enter" && addCustomAmenity()
+                        }
                       />
-                      <Button 
+                      <Button
                         type="button"
                         variant="outline"
                         onClick={addCustomAmenity}
@@ -414,12 +479,14 @@ const AddVenue = () => {
                       className="flex items-center gap-2"
                     >
                       <Sparkles className="h-4 w-4" />
-                      {isGeneratingDescription ? 'Generating...' : 'Generate with AI'}
+                      {isGeneratingDescription
+                        ? "Generating..."
+                        : "Generate with AI"}
                     </Button>
                   </div>
-                  <Textarea 
+                  <Textarea
                     id="description"
-                    placeholder="Detailed description of the venue" 
+                    placeholder="Detailed description of the venue"
                     name="description"
                     value={formData.description}
                     onChange={handleInputChange}
@@ -437,19 +504,20 @@ const AddVenue = () => {
                     <ArrowLeft className="h-4 w-4" />
                     Back to Details
                   </Button>
-                  <Button 
-                    type="submit" 
+                  <Button
+                    type="submit"
                     className="flex items-center gap-2"
                     disabled={isSubmitting}
                   >
-                    {isSubmitting ? 'Adding Venue...' : 'Add Venue'}
+                    {isSubmitting ? "Adding Venue..." : "Add Venue"}
                     <Check className="h-4 w-4" />
                   </Button>
                 </div>
 
                 <Alert className="mt-6">
                   <AlertDescription>
-                    Review all details before submitting. You can go back to edit basic information if needed.
+                    Review all details before submitting. You can go back to
+                    edit basic information if needed.
                   </AlertDescription>
                 </Alert>
               </div>
