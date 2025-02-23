@@ -13,6 +13,7 @@ router.route("/getEventsByDate").post(verifyJWT, getEventsByDate);
 router.route("/filterEventsByType").post(verifyJWT, filterEventsByType);
 router.route("/getPendingEventsAdmin").get( getPendingEventsAdmin);
 router.route("/getPendingEventsVenueManager").get(getPendingEventsVenueManager);
+router.route("/getPendingEventsVenueManager").post(getPendingEventsVenueManager);
 router.route("/getEventById/:eventId").get(verifyJWT, getEventById);
 router.route("/proposeNegotiation").post(verifyJWT, proposeNegotiation);
 router.route("/respondToNegotiation").post(verifyJWT, respondToNegotiation);
