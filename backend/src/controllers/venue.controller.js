@@ -270,4 +270,68 @@ const bookVenue = async (req, res) => {
     }
 };
 
-export { getSimilarVenues, registerVenue, approveVenueByAdmin, verifyVenue, getAllVenues, bookVenue };
+// Get all pending venue proposals for admin
+const getPendingVenues = async (req, res) => {
+    try {
+        const pendingVenues = await Venue.find({ status: "pending_approval" })
+            .populate("managerId", "name email") // Populate manager details
+            .select("name address capacity managerId status amenities venueTypes images"); // Select necessary fields
+
+        res.status(200).json({
+            success: true,
+            data: pendingVenues,
+            message: "Pending venues fetched successfully"
+        });
+    } catch (error) {
+        console.error("Error fetching pending venues:", error);
+        res.status(500).json({
+            success: false,
+            message: "Server error while fetching pending venues",
+            error: error.message
+        });
+    }
+};
+
+const rejectVenue = async (req, res) => {
+    try {
+        const { venueId, rejectionReason } = req.body;
+        const userId = req.user?._id;
+
+        const admin = await Admin.findById(userId);
+        if (!admin) {
+            return res.status(404).json({ message: "Admin not found" });
+        }
+
+        const venue = await Venue.findById(venueId);
+        if (!venue) {
+            return res.status(404).json({ message: "Venue not found" });
+        }
+
+        if (venue.status === "approved_by_admin") {
+            return res.status(400).json({ message: "Venue is already approved" });
+        }
+
+        // Update the venue status and rejection details
+        venue.status = "rejected";
+        venue.rejectionReason = rejectionReason;
+        venue.rejectedBy = userId;
+        venue.rejectionDate = new Date();
+
+        await venue.save();
+
+        res.status(200).json({
+            success: true,
+            message: "Venue has been successfully rejected",
+            venue,
+        });
+    } catch (error) {
+        console.error("Error rejecting venue:", error);
+        res.status(500).json({ 
+            success: false, 
+            message: "Failed to reject venue", 
+            error: error.message 
+        });
+    }
+};
+
+export { getSimilarVenues, registerVenue, approveVenueByAdmin, verifyVenue, getAllVenues, bookVenue, getPendingVenues, rejectVenue };

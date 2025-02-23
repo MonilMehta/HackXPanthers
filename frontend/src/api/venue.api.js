@@ -7,3 +7,4 @@ export const getAllVenues = `${SERVER_API}/venues/getAllVenues`;//connected
 export const getPendingVenues = `${SERVER_API}/venues/getPendingVenues`;
 export const bookVenue = `${SERVER_API}/venues/bookVenue`;
 export const getSimilarVenues = `${SERVER_API}/venues/getSimilarVenues`;
+export const rejectVenue = `${SERVER_API}/venues/rejectVenue`;
