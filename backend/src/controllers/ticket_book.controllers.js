@@ -295,4 +295,78 @@ const getUserTickets = async (req, res) => {
     }
 };
 
-export { bookTickets, getAvailableSeats, getUserTickets };
+const getVenueSeatLayout = async (req, res) => {
+    try {
+        const { eventId } = req.body;
+
+        const event = await Event.findById(eventId)
+            .populate({
+                path: 'venueId',
+                select: 'name seatLayout capacity'
+            });
+
+        if (!event) {
+            return res.status(404).json({
+                success: false,
+                message: "Event not found"
+            });
+        }
+
+        const venue = event.venueId;
+        if (!venue) {
+            return res.status(404).json({
+                success: false,
+                message: "Venue not found for this event"
+            });
+        }
+
+        // Transform seat layout data to include pricing and availability
+        const seatLayout = venue.seatLayout.map(section => {
+            const sectionPrice = event.seatPricing.find(sp => 
+                sp.seatSetName === section.name
+            )?.price || 0;
+
+            return {
+                name: section.name,
+                rows: section.rows,
+                columns: section.columns,
+                price: sectionPrice,
+                seats: section.seats.map(seat => ({
+                    ...seat,
+                    isAvailable: !seat.isBooked,
+                    price: sectionPrice
+                })),
+                capacity: section.rows * section.columns,
+                availableSeats: section.seats.filter(seat => !seat.isBooked).length
+            };
+        });
+
+        return res.status(200).json({
+            success: true,
+            data: {
+                venueName: venue.name,
+                totalCapacity: venue.capacity,
+                layout: seatLayout,
+                eventTitle: event.title,
+                eventDate: event.eventDate,
+                startTime: event.startTime
+            }
+        });
+
+    } catch (error) {
+        console.error("Error fetching venue seat layout:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Error fetching venue seat layout",
+            error: error.message
+        });
+    }
+};
+
+// Update exports to include new controller
+export { 
+    bookTickets, 
+    getAvailableSeats, 
+    getUserTickets,
+    getVenueSeatLayout 
+};
