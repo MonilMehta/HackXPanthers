@@ -276,11 +276,12 @@ const getAllUsers = async (req, res, next) => {
 const getOneUser = async (req, res) => {
   try {
     const { userId } = req.body; // Get artist ID from request body
+console.log(userId);
 
     // Find the artist by ID and exclude sensitive fields
     const userData = await User.findById(userId)
       .select("-password -refreshToken -__v"); // Exclude sensitive fields
-
+    
     // If artist is not found
     if (!userData) {
       return res

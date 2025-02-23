@@ -313,10 +313,10 @@ const getPendingEventsAdmin = async (req, res) => {
         res.status(500).json({ success: false, message: "Server error" });
     }
 };
-
 const getPendingEventsVenueManager = async (req, res) => {
     try {
-        const venueId = req.body.venueId; // Get venue ID from request body
+        const { venueId } = req.body; // Destructure venueId from request body
+        console.log('Venue ID:', venueId); // Add debugging log
 
         if (!venueId) {
             return res.status(400).json({ 
@@ -327,7 +327,7 @@ const getPendingEventsVenueManager = async (req, res) => {
 
         const pendingEvents = await Event.find({ 
             status: "approved_by_admin", 
-            venueId: venueId 
+            venueId: venueId  // Use the venueId from request body
         })
         .populate("primaryArtistId", "fullName")
         .populate("venueId", "name address");

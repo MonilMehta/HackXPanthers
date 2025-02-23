@@ -1,3 +1,12 @@
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Calendar, Clock, MapPin, Users, Tag, Ticket, DollarSign } from "lucide-react";
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -11,22 +20,24 @@ const ManageVenue = () => {
 
   const fetchProposals = async () => {
     try {
-      const venueId = '67ba2ee1e9072bec73cbba16';
-      const accessToken = localStorage.getItem('accessToken');
+      const venueId = '67ba2ee1e9072bec73cbba16'; // Get venueId from localStorage
+    const accessToken = localStorage.getItem('accessToken');
 
-      if (!venueId || !accessToken) {
-        throw new Error('Invalid venueId or accessToken');
-      }
+    if (!venueId || !accessToken) {
+      throw new Error('Invalid venueId or accessToken');
+    }
 
-      // Using query parameters instead of request body for GET request
-      const response = await axios.get(
-        `http://localhost:8000/api/events/getPendingEventsVenueManager?venueId=${venueId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`
-          }
+    // Changed to POST request
+    const response = await axios.post(
+      'http://localhost:8000/api/events/getPendingEventsVenueManager',
+      { venueId }, // Request body
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`
         }
-      );
+      }
+    );
 
       console.log('API Response:', response.data);
       if (response.data?.success) {
