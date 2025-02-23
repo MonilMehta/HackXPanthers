@@ -70,7 +70,7 @@
       "path": "/admin/users"
     },
     {
-      "title": "Event Proposals",
+      "title": "Proposals",
       "icon": "CalendarCheck",
       "path": "/admin/proposal"
     },

@@ -267,6 +267,7 @@ const AddVenue = () => {
           }
         }
       );
+      console.log('Venue added:', response.data);
 
       if (response.data?.success) {
         toast.success("Venue added successfully!");
