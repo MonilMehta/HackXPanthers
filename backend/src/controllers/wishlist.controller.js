@@ -5,7 +5,7 @@ import { Wishlist } from "../models/wishlist.models.js";
 
 const createWishlist = asyncHandler(async (req, res) => {
     const { eventId } = req.body;
-    const userId = req.user?._id;
+    const {userId} = req.body;
 
     if (!eventId) {
         throw new ApiError(400, "Event ID is required");
