@@ -54,11 +54,12 @@ const LandingPage = () => {
         </div>
 
         <Features />
+        <Youtube />
+        <Shorts />
         <Statistics />
         <Testimonials />
         <CallToAction />
-        <Youtube />
-        <Shorts />
+        
 
         {/* Mouse Trailer */}
         <motion.div

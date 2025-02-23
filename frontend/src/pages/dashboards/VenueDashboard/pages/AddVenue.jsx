@@ -31,6 +31,8 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import AWSHelper from "@/utils/awsHelper";
 import { registerVenue } from "@/api/venue.api";
+import axios from "axios";
+
 const COMMON_AMENITIES = [
   "Free WiFi",
   "Parking",
@@ -198,33 +200,93 @@ const AddVenue = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    
     try {
-      // Convert the media array to URLs only
-      const mediaUrls = media.map((m) => m.url);
+      const managerId = localStorage.getItem('userId');
+      if (!managerId) {
+        throw new Error('Manager ID not found');
+      }
 
+      // Prepare venue data according to API structure
       const venueData = {
-        ...formData,
-        media: mediaUrls,
+        managerId,
+        name: formData.name,
+        address: {
+          street: formData.address,
+          city: "", // Add these fields to your form if needed
+          state: "",
+          pincode: "",
+          latitude: "", // Extract from Google Maps link or add separate fields
+          longitude: ""
+        },
+        capacity: formData.capacity,
+        seatLayout: [
+          {
+            name: "Main Section",
+            priority: 1,
+            rows: Math.ceil(formData.capacity / 20),
+            columns: 20
+          }
+        ],
         amenities: selectedAmenities,
+        availabilitySchedule: {
+          regularHours: [
+            {
+              dayOfWeek: 1,
+              startTime: "09:00",
+              endTime: "22:00",
+              isAvailable: true
+            },
+            {
+              dayOfWeek: 2,
+              startTime: "09:00",
+              endTime: "22:00",
+              isAvailable: true
+            }
+          ]
+        },
+        venueTypes: [
+          {
+            name: "general",
+            description: "Suitable for various events"
+          }
+        ],
+        description: formData.description,
+        images: media.map(m => m.url)
       };
 
-      // Your API call to save venue data
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      toast.success("Venue added successfully!");
+      const accessToken = localStorage.getItem('accessToken');
+      
+      const response = await axios.post(
+        'http://localhost:8000/api/venues/registerVenue',
+        venueData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`
+          }
+        }
+      );
 
-      // Reset form
-      setFormData({
-        name: "",
-        capacity: 100,
-        address: "",
-        description: "",
-        location: "",
-      });
-      setMedia([]);
-      setSelectedAmenities([]);
-      setCurrentStep(1);
+      if (response.data?.success) {
+        toast.success("Venue added successfully!");
+        // Reset form
+        setFormData({
+          name: "",
+          capacity: 100,
+          address: "",
+          description: "",
+          location: ""
+        });
+        setMedia([]);
+        setSelectedAmenities([]);
+        setCurrentStep(1);
+      } else {
+        throw new Error(response.data?.message || 'Failed to add venue');
+      }
     } catch (error) {
-      toast.error("Failed to add venue. Please try again.");
+      console.error('Error adding venue:', error);
+      toast.error(error.message || "Failed to add venue. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

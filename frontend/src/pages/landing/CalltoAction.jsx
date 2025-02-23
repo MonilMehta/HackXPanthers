@@ -17,7 +17,7 @@ export const CallToAction = () => {
           <h2 className="text-4xl font-bold mb-6">
             <HyperText>Ready to Join the Comedy Revolution?</HyperText>
           </h2>
-          <p className="text-xl text-gray-300 mb-8">
+          <p className="text-xl  mb-8">
             Start your journey today and be part of the fastest-growing comedy
             community.
           </p>
@@ -27,15 +27,15 @@ export const CallToAction = () => {
               className="bg-gradient-to-r from-yellow-400 to-pink-500 text-black hover:from-yellow-500 hover:to-pink-600 px-8 py-6 text-xl"
               onClick={() => navigate("/staffsignin")}
             >
-              Sign In as Staff
+              Already A Part of the Revolution? Sign In
             </Button>
 
             <Button
               size="lg"
               variant="outline"
-              className="border-yellow-400 text-yellow-400 hover:bg-yellow-400/10 px-8 py-6 text-xl"
+              className="border-yellow-400  hover:bg-yellow-400/10 px-8 py-6 text-xl"
             >
-              Schedule a Demo
+              Join the Revolution
             </Button>
           </div>
         </motion.div>

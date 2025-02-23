@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label"; // Add this
+import venue1 from '../../../../assets/venue1.jpg'; // Add this
 import {
   Search,
   MapPin,
@@ -46,7 +47,7 @@ const VenueCard = ({ venue }) => {
           capacity: venue.capacity,
           rating: venue.rating,
           shows: venue.shows,
-          image: venue.images?.[0] || "https://source.unsplash.com/random/800x600/?venue",
+          image: venue.images?.[0] || {venue1},
           description: venue.description,
           price: venue.basePrice || "Price on request",
           amenities: venue.amenities,
@@ -59,7 +60,7 @@ const VenueCard = ({ venue }) => {
     <Card className="overflow-hidden bg-background/50 backdrop-blur-sm border-primary/20 hover:border-primary/40 transition-all">
       <div className="h-48 bg-primary/10 relative">
         <img
-          src={venue.images?.[0] || "https://source.unsplash.com/random/800x600/?venue"}
+          src={venue1}
           alt={venue.name}
           className="w-full h-full object-cover"
         />
