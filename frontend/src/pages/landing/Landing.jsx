@@ -9,7 +9,8 @@ import { CallToAction } from './CallToAction';
 import Navbar from '../components/Navbar';
 import Footer from '../footer/footer';
 import { AuroraText } from "@/components/magicui/aurora-text";
-
+import Youtube from './Youtube';
+import Shorts from './Shorts';
 const LandingPage = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
@@ -56,6 +57,8 @@ const LandingPage = () => {
         <Statistics />
         <Testimonials />
         <CallToAction />
+        <Youtube />
+        <Shorts />
 
         {/* Mouse Trailer */}
         <motion.div
