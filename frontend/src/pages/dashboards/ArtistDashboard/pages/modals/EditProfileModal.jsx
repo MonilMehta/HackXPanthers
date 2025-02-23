@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { toast } from "sonner";
+import axios from "axios";
 import {
   Dialog,
   DialogContent,
@@ -18,15 +20,73 @@ import {
   Facebook,
   Edit,
 } from "lucide-react";
-import { toast } from "sonner"
+import AWSHelper from "@/utils/awsHelper";
 
 const EditProfileModal = ({ user, onSave }) => {
   const [open, setOpen] = useState(false);
-  const [previewImage, setPreviewImage] = useState(user?.avatar);
+  const [isLoading, setIsLoading] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
+  const [previewImage, setPreviewImage] = useState(user?.profile_image || "/default-avatar.png");
+  const [formData, setFormData] = useState({
+    name: user?.fullName || "",
+    stageName: user?.stageName || "",
+    bio: user?.bio || "",
+    profile_image: user?.profile_image || "",
+    socials: {
+      instagram: user?.socialLinks?.instagram || "",
+      twitter: user?.socialLinks?.twitter || "",
+      youtube: user?.socialLinks?.youtube || "",
+      facebook: user?.socialLinks?.facebook || "",
+    }
+  });
+
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        name: user.fullName || "",
+        stageName: user.stageName || "",
+        bio: user.bio || "",
+        profile_image: user.profile_image || "",
+        socials: {
+          instagram: user?.socialLinks?.instagram || "",
+          twitter: user?.socialLinks?.twitter || "",
+          youtube: user?.socialLinks?.youtube || "",
+          facebook: user?.socialLinks?.facebook || "",
+        }
+      });
+      setPreviewImage(user.profile_image || "/default-avatar.png");
+    }
+  }, [user]);
+
+  // Reset state when modal closes
+  useEffect(() => {
+    if (!open) {
+      setImageFile(null);
+      setPreviewImage(user?.profile_image || "/default-avatar.png");
+      setFormData({
+        name: user?.fullName || "",
+        stageName: user?.stageName || "",
+        bio: user?.bio || "",
+        profile_image: user?.profile_image || "",
+        socials: {
+          instagram: user?.socialLinks?.instagram || "",
+          twitter: user?.socialLinks?.twitter || "",
+          youtube: user?.socialLinks?.youtube || "",
+          facebook: user?.socialLinks?.facebook || "",
+        }
+      });
+    }
+  }, [open, user]);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("Image size should be less than 5MB");
+        return;
+      }
+      setImageFile(file);
+      // Show preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreviewImage(reader.result);
@@ -35,27 +95,80 @@ const EditProfileModal = ({ user, onSave }) => {
     }
   };
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
-    const formData = new FormData(e.target);
-    const data = {
-      name: formData.get("name"),
-      stageName: formData.get("stageName"),
-      bio: formData.get("bio"),
-      avatar: previewImage,
-      socials: {
-        instagram: formData.get("socials.instagram"),
-        twitter: formData.get("socials.twitter"),
-        youtube: formData.get("socials.youtube"),
-        facebook: formData.get("socials.facebook"),
-      },
-    };
-    onSave(data);
-    setOpen(false);
+    setIsLoading(true);
+
+    try {
+      let imageUrl = formData.profile_image;
+
+      if (imageFile) {
+        try {
+          console.log("Uploading image to AWS...");
+          const artistUsername = user?.username || 'artist';
+          imageUrl = await AWSHelper.upload(imageFile, artistUsername);
+          console.log("Image uploaded:", imageUrl);
+        } catch (error) {
+          console.error("Image upload error:", error);
+          toast.error("Failed to upload image");
+          return;
+        }
+      }
+
+      const artistId = user?._id || localStorage.getItem("userId");
+      if (!artistId) {
+        toast.error("Artist ID not found");
+        return;
+      }
+
+      const updateData = {
+        artistid: artistId,
+        fullName: formData.name,
+        stageName: formData.stageName,
+        bio: formData.bio,
+        profile_image: imageUrl,
+        socialLinks: {
+          instagram: formData.socials.instagram || "",
+          twitter: formData.socials.twitter || "",
+          youtube: formData.socials.youtube || "",
+          facebook: formData.socials.facebook || "",
+        },
+      };
+
+      // Remove any undefined or null values
+      Object.keys(updateData).forEach(key => {
+        if (updateData[key] === undefined || updateData[key] === null) {
+          delete updateData[key];
+        }
+      });
+
+      const response = await axios.post(
+        "http://localhost:8000/api/artists/updateArtistDetails",
+        updateData,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.data.success) {
+        toast.success("Profile updated successfully");
+        console.log("Profile updated:", response.data.data);
+        onSave(response.data.data);
+        setOpen(false);
+      }
+    } catch (error) {
+      console.error("Update error:", error);
+      toast.error("Failed to update profile");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(isOpen) => !isLoading && setOpen(isOpen)}>
       <DialogTrigger asChild>
         <Button variant="outline" className="gap-2">
           <Edit className="h-4 w-4" /> Edit Profile
@@ -66,12 +179,9 @@ const EditProfileModal = ({ user, onSave }) => {
           <DialogTitle>Edit Profile</DialogTitle>
         </DialogHeader>
 
-        <form
-          onSubmit={handleSave}
-          className="flex-1 overflow-y-auto pr-4 -mr-4"
-        >
+        <form onSubmit={handleSave} className="flex-1 overflow-y-auto pr-4 -mr-4">
+          {/* Profile Image Section */}
           <div className="space-y-6">
-            {/* Profile Image Upload */}
             <div className="flex items-center gap-4">
               <div className="relative group">
                 <div className="w-32 h-32 rounded-full overflow-hidden border-2 border-primary/20">
@@ -79,10 +189,11 @@ const EditProfileModal = ({ user, onSave }) => {
                     src={previewImage}
                     alt="Profile"
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.src = "/default-avatar.png";
+                      e.target.onerror = null;
+                    }}
                   />
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
-                    <Camera className="h-8 w-8 text-white" />
-                  </div>
                 </div>
                 <input
                   type="file"
@@ -107,7 +218,7 @@ const EditProfileModal = ({ user, onSave }) => {
               </div>
             </div>
 
-            {/* Basic Info */}
+            {/* Rest of the form fields */}
             <div className="space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -115,7 +226,11 @@ const EditProfileModal = ({ user, onSave }) => {
                   <Input
                     id="name"
                     name="name"
-                    defaultValue={user?.name}
+                    value={formData.name}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      name: e.target.value
+                    }))}
                     className="bg-background"
                     required
                   />
@@ -125,7 +240,11 @@ const EditProfileModal = ({ user, onSave }) => {
                   <Input
                     id="stageName"
                     name="stageName"
-                    defaultValue={user?.stageName}
+                    value={formData.stageName}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      stageName: e.target.value
+                    }))}
                     className="bg-background"
                   />
                 </div>
@@ -136,7 +255,11 @@ const EditProfileModal = ({ user, onSave }) => {
                 <Textarea
                   id="bio"
                   name="bio"
-                  defaultValue={user?.bio}
+                  value={formData.bio}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    bio: e.target.value
+                  }))}
                   className="bg-background min-h-[100px]"
                   rows={4}
                 />
@@ -174,23 +297,33 @@ const EditProfileModal = ({ user, onSave }) => {
                     name={`socials.${social.id}`}
                     className="border-0 bg-transparent focus-visible:ring-0 px-0"
                     placeholder={social.placeholder}
-                    defaultValue={user?.socials?.[social.id]}
+                    value={formData.socials[social.id]}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      socials: {
+                        ...prev.socials,
+                        [social.id]: e.target.value
+                      }
+                    }))}
                   />
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Footer Buttons - Fixed at bottom */}
+          {/* Footer Buttons */}
           <div className="sticky bottom-0 pt-6 pb-2 bg-background flex justify-end gap-4 mt-6">
             <Button
               type="button"
               variant="outline"
               onClick={() => setOpen(false)}
+              disabled={isLoading}
             >
               Cancel
             </Button>
-            <Button type="submit">Save Changes</Button>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? "Saving..." : "Save Changes"}
+            </Button>
           </div>
         </form>
       </DialogContent>
