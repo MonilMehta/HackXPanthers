@@ -11,12 +11,12 @@
       "path": "/venue/profile"
     },
     {
-      "title": "Manage Venues",
+      "title": "Booking Proposals",
       "icon": "Building2",
       "path": "/venue/manage"
     },
     {
-      "title": "Booking Proposals",
+      "title": "Manage Venues",
       "icon": "CalendarCheck",
       "path": "/venue/proposals"
     },
@@ -111,6 +111,11 @@
       "title": "Profile",
       "icon": "User",
       "path": "/customer/profile"
+    },
+    {
+      "title": "WishList",
+      "icon": "User",
+      "path": "/customer/wishlist"
     }
   ]
 }

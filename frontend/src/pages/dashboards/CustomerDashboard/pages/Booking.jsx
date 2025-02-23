@@ -19,6 +19,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
+import Threater from "./Threater";
+import { createWishlist } from "@/api/whistlist.api";
+import { toast } from "sonner";
+import { jwtDecode } from "jwt-decode"; // Change this line
 
 const Booking = () => {
   const { id } = useParams();
@@ -209,6 +213,65 @@ const Booking = () => {
     );
   };
 
+  const handleAddToWishlist = async () => {
+    try {
+      const accessToken = localStorage.getItem("accessToken");
+      if (!accessToken) {
+        toast.error("Please login to add to wishlist");
+        navigate("/signin");
+        return;
+      }
+
+      // Debug log to check values
+      console.log("Request Details:", {
+        endpoint: createWishlist,
+        eventId: event._id,
+        accessToken: accessToken,
+      });
+      const userId=localStorage.getItem("userId");
+      // Make sure we're sending the right data structure
+      const response = await axios({
+        method: "post",
+        url: createWishlist,
+        data: {
+          eventId: event._id,
+          userId: userId, // Replace with actual user ID
+        },
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      console.log("Full Response:", response); // Debug log
+
+      if (response.data.success) {
+        toast.success(
+          response.data.message || "Added to wishlist successfully!"
+        );
+      } else {
+        throw new Error(response.data.message || "Failed to add to wishlist");
+      }
+    } catch (error) {
+      console.error("Full error details:", {
+        error: error,
+        response: error.response,
+        data: error.response?.data,
+      });
+
+      toast.error(
+        error.response?.data?.message ||
+          error.message ||
+          "Error adding to wishlist. Please try again."
+      );
+
+      if (error.response?.status === 401) {
+        localStorage.removeItem("accessToken");
+        navigate("/signin");
+      }
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -305,7 +368,11 @@ const Booking = () => {
           <Ticket className="mr-2 h-5 w-5" />
           Pay ₹{calculateTotal()}
         </Button>
-        <Button variant="outline" className="w-full">
+        <Button
+          variant="outline"
+          className="w-full"
+          onClick={handleAddToWishlist}
+        >
           <Heart className="mr-2 h-5 w-5" />
           Add to Wishlist
         </Button>
@@ -446,6 +513,7 @@ const Booking = () => {
           <div className="space-y-6">{renderBookingSection()}</div>
         </div>
       </div>
+      <Threater />
     </div>
   );
 };

@@ -3,6 +3,6 @@ import { createWishlist, getAllWishlists } from "../controllers/wishlist.control
 const router = Router();
 
 router.route("/createWishlist").post(createWishlist);
-router.route("/getAllWishlists").get(getAllWishlists);
+router.route("/getAllWishlists").post(getAllWishlists);
 
 export default router
