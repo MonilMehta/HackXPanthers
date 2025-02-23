@@ -58,7 +58,8 @@ function StaffSignin() {
         password: formData.password,
       });
       const { accessToken } = response.data.data;
-      const userData = response.data.data[formData.userType]; // gets artist/venue/admin data
+      const userData = response.data.data["user"];
+      console.log(userData) // gets artist/venue/admin data
       localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("userRole", roleMap[formData.userType]);
       localStorage.setItem("userId", userData._id);
@@ -68,6 +69,8 @@ function StaffSignin() {
         artist: "/artist",
         administrator: "/admin",
       };
+
+      console.log("Logged in successfully:", userData);
 
       navigate(routeMap[formData.userType]);
     } catch (error) {
