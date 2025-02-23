@@ -33,7 +33,7 @@ const createWishlist = asyncHandler(async (req, res) => {
 });
 
 const getAllWishlists = asyncHandler(async (req, res) => {
-    const userId = req.user?._id;
+    const {userId} = req.body;
 
     const wishlist = await Wishlist.findOne({ userId })
         .populate("events")
