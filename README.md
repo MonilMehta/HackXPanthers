@@ -7,14 +7,16 @@
 [![AWS](https://img.shields.io/badge/AWS-%23FF9900.svg?style=flat&logo=amazon-aws&logoColor=white)](https://aws.amazon.com/)
 
 <div align="center">
-  <p><em>A Centralized Platform for the Live Comedy Scene</em></p>
+  <p><em>Bringing the Comedy Scene Together – One Stage, One Laugh at a Time! 🎤😂</em></p>
   
-  [![Watch the demo](https://img.youtube.com/vi/BzRZaS7U9aQ/0.jpg)](https://www.youtube.com/watch?v=BzRZaS7U9aQ)
+  [![🎥 Watch the Live Demo 🎥](https://img.youtube.com/vi/BzRZaS7U9aQ/0.jpg)](https://www.youtube.com/watch?v=BzRZaS7U9aQ)
 </div>
 
 ## 🚀 About The Project
 
-**ComedyConnect** is a centralized tri-party marketplace platform designed to revolutionize the live comedy scene. Our application addresses the fragmentation in organizing comedy shows by efficiently connecting venues, comedians, and audiences - providing a seamless environment for discovering, organizing, and attending comedy events!
+**ComedyConnect** is a revolutionary digital platform designed to streamline the live comedy scene by connecting venues, comedians, and audiences. Currently, organizing comedy shows is a fragmented process that involves multiple platforms for bookings, promotions, and audience engagement.
+
+With ComedyConnect, we simplify everything – from securing locations and booking talent to reaching the perfect audience – creating a seamless experience, much like how Dineout simplifies dining reservations! 🍽️🎭
 
 ## 🎯 Problem Statement
 
