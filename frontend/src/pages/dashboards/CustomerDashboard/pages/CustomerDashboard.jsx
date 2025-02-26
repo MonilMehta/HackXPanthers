@@ -11,8 +11,12 @@ import Shorts from "@/pages/landing/Shorts";
 import img_big from "../../../../assets/img_big.webp";
 import img_big2 from "../../../../assets/img_big2.jpg";
 import img_big3 from "../../../../assets/img_big3.jpg";
+import img_small from "../../../../assets/img_small.jpg";
+import { toast } from "sonner";
+import axios from "axios";
 
 // Updated sample data with proper ISO date strings and a new 'genre' key.
+
 const sampleCarouselEvents = [
   {
     id: 1,
@@ -110,29 +114,144 @@ const genres = [
   "Roast Battles",
   "Character Comedy",
 ];
-
 const CustomerDashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [nearbyEvents, setNearbyEvents] = useState([]);
+  const [allApiEvents, setAllApiEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [userPincode, setUserPincode] = useState(null);
 
-  // Debounce input (poll every 500ms)
+  const calculateProximity = (userPin, venuePin) => {
+    if (!userPin || !venuePin) return Infinity;
+    const userPinNum = parseInt(userPin);
+    const venuePinNum = parseInt(venuePin);
+    return Math.abs(userPinNum - venuePinNum);
+  };
+
+  const fetchUserAndEvents = async () => {
+    try {
+      const accessToken = localStorage.getItem("accessToken");
+      const userId = localStorage.getItem("userId");
+
+      if (!accessToken || !userId) {
+        toast.error("Please login to see events near you");
+        return;
+      }
+
+      // Fetch user data
+      const userResponse = await axios.post(
+        "http://localhost:8000/api/users/getOneUser",
+        { userId: userId },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (userResponse.data.success) {
+        const userPincode = userResponse.data.data.address?.pincode;
+        setUserPincode(userPincode);
+
+        // Fetch all events
+        const eventsResponse = await axios.get(
+          "http://localhost:8000/api/events/getAllEvents",
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (eventsResponse.data.success) {
+          const allEvents = eventsResponse.data.data;
+          setAllApiEvents(allEvents);
+
+          // Filter nearby events if user has pincode
+          if (userPincode) {
+            const nearby = allEvents.filter((event) => {
+              const venuePincode = event.venueId?.address?.pincode;
+              const proximity = calculateProximity(userPincode, venuePincode);
+              return proximity < 5;
+            });
+            setNearbyEvents(nearby);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error details:", error.response || error);
+      toast.error(
+        error.response?.data?.message || "Failed to fetch events"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUserAndEvents();
+  }, []);
+
   useEffect(() => {
     const handler = setTimeout(() => setDebouncedQuery(searchQuery), 500);
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
-  // Filtering: now using updated fields.
-  // (For advanced date filtering, consider using Date.parse and comparing with current date.)
-  const allEvents = [...sampleFeaturedEvents, ...sampleNearYouEvents];
-  const filteredResults = allEvents.filter((e) => {
-    const query = debouncedQuery.toLowerCase();
-    return (
-      (e.title && e.title.toLowerCase().includes(query)) ||
-      (e.comedian && e.comedian.toLowerCase().includes(query)) ||
-      (e.location && e.location.toLowerCase().includes(query)) ||
-      (e.genre && e.genre.toLowerCase().includes(query))
+  // Normalize the API events to match the sample data structure
+  const normalizedApiEvents = allApiEvents.map(event => ({
+    id: event._id,
+    title: event.title,
+    description: event.description,
+    location: event.venueId?.address?.city || '',
+    date: event.datetime,
+    price: event.ticketPrice,
+    genre: event.category,
+    venue: event.venueId?.name,
+    image: event.image || img_big // fallback image
+  }));
+
+  // Combine all events for searching
+  const allEvents = [
+    ...sampleFeaturedEvents,
+    ...sampleNearYouEvents,
+    ...nearbyEvents,
+    ...normalizedApiEvents
+  ];
+
+  // Remove duplicates based on event ID or _id
+  const uniqueEvents = Array.from(
+    new Map(allEvents.map(event => [event.id || event._id, event])).values()
+  );
+
+  const filteredResults = uniqueEvents.filter((e) => {
+    const query = debouncedQuery.toLowerCase().trim();
+    
+    // Handle both API and sample data structures
+    const searchableFields = [
+      e.title,
+      e.description,
+      e.comedian,
+      e.location,
+      e.genre,
+      e.venue,
+      e.category,
+      e.venueId?.name,
+      e.venueId?.address?.city
+    ];
+
+    return searchableFields.some(field => 
+      field && field.toLowerCase().includes(query)
     );
   });
+
+  if (loading) {
+    return <div className="min-h-screen bg-background flex items-center justify-center">
+      <p className="text-white">Loading...</p>
+    </div>;
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -145,23 +264,12 @@ const CustomerDashboard = () => {
           <FeaturedEvents events={sampleFeaturedEvents} />
           <GenresSection genres={genres} />
           <NearYou events={sampleNearYouEvents} />
-
-          {/* Video Content Section */}
           <div className="mt-20 space-y-20">
-            {/* Youtube Section */}
             <div className="w-full">
               <h2 className="text-3xl font-bold text-white mb-8 text-center">
                 Featured Videos
               </h2>
               <Youtube />
-            </div>
-
-            {/* Shorts Section */}
-            <div className="w-full">
-              <h2 className="text-3xl font-bold text-white mb-8 text-center">
-                Trending Shorts
-              </h2>
-              <Shorts />
             </div>
           </div>
         </>

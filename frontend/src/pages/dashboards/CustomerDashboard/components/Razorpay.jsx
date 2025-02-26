@@ -2,10 +2,8 @@ const loadScript = (src) => {
   return new Promise((resolve) => {
     const script = document.createElement("script");
     script.src = src;
-
     script.onload = () => resolve(true);
     script.onerror = () => resolve(false);
-
     document.body.appendChild(script);
   });
 };
@@ -16,15 +14,11 @@ const Razorpay = ({
   eventId,
   seats,
   ticketCount,
-  discount,
-  promoCode,
   onSuccess,
 }) => {
   return new Promise(async (resolve, reject) => {
     try {
-      const res = await loadScript(
-        "https://checkout.razorpay.com/v1/checkout.js"
-      );
+      const res = await loadScript("https://checkout.razorpay.com/v1/checkout.js");
 
       if (!res) {
         reject(new Error("Failed to load Razorpay SDK"));
@@ -32,17 +26,14 @@ const Razorpay = ({
       }
 
       const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-        amount: amount, // amount should already be in paise
+        key: "rzp_test_DwptmlE6gLwR5G",
         currency: "INR",
+        amount: amount * 100,
         name: "Comedy Club",
         description: `Booking ${ticketCount} tickets`,
         handler: async function (response) {
           try {
-            const paymentId = response.razorpay_payment_id;
-
-            // Send transaction details to backend
-            const result = await fetch("/api/bookings", {
+            const bookingResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/bookings`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -51,29 +42,27 @@ const Razorpay = ({
               body: JSON.stringify({
                 userId,
                 eventId,
-                amount: amount / 100, // Convert back to rupees
-                paymentId,
+                amount,
+                paymentId: response.razorpay_payment_id,
                 seats,
                 ticketCount,
-                discount,
-                promoCode,
               }),
             });
 
-            const data = await result.json();
+            const data = await bookingResponse.json();
             if (data.success) {
-              onSuccess(paymentId);
-              resolve({ success: true, paymentId });
+              onSuccess(response.razorpay_payment_id);
+              resolve({ success: true, paymentId: response.razorpay_payment_id });
             } else {
-              reject(new Error(data.message || "Booking failed"));
+              reject(new Error("Booking failed"));
             }
           } catch (error) {
             reject(error);
           }
         },
         prefill: {
-          name: "Customer",
-          email: localStorage.getItem("userEmail"),
+          name: localStorage.getItem("userName") || "Customer",
+          email: localStorage.getItem("userEmail") || "",
         },
         theme: {
           color: "#422AFB",
@@ -83,6 +72,7 @@ const Razorpay = ({
       const paymentObject = new window.Razorpay(options);
       paymentObject.open();
     } catch (error) {
+      console.error("Razorpay Error:", error);
       reject(error);
     }
   });

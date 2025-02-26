@@ -1,15 +1,16 @@
 import React from "react";
 import Sidebar from "../components/Sidebar";
+import DashboardLayout from "@/components/layout/DashboardLayout";
 import VenueDashboard from "./pages/VenueDashboard";
 import Manage from "./pages/ManageVenue";
 import Proposal from "./pages/AddVenue";
 import Analystics from "./pages/Analystics";
 import Profile from "./pages/Profile";
 import { Routes,Route } from "react-router-dom";
+
 const VenueManager = () => {
   return (
-    <div className="flex h-screen bg-background">
-      <Sidebar />
+    <DashboardLayout sidebar={Sidebar}>
       <Routes>
         <Route path="/" element={<VenueDashboard />} />
         <Route path="manage" element={<Manage />} />
@@ -17,8 +18,7 @@ const VenueManager = () => {
         <Route path="analystics" element={<Analystics />} />
         <Route path="profile" element={<Profile />} />
       </Routes>
-      
-    </div>
+    </DashboardLayout>
   );
 };
 

@@ -60,7 +60,7 @@ const VenueCard = ({ venue }) => {
     <Card className="overflow-hidden bg-background/50 backdrop-blur-sm border-primary/20 hover:border-primary/40 transition-all">
       <div className="h-48 bg-primary/10 relative">
         <img
-          src={venue1}
+          src={venue.images?.[0] || {venue1}}
           alt={venue.name}
           className="w-full h-full object-cover"
         />

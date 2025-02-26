@@ -13,13 +13,17 @@ const Events = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch events from API
+  // Updated fetch events function to filter approved events
   useEffect(() => {
     const fetchEvents = async () => {
       try {
         const response = await axios.get(getAllEvents);
-        setEvents(response.data.data);
-        setFilteredEvents(response.data.data);
+        // Filter only approved events
+        const approvedEvents = response.data.data.filter(
+          event => event.status === "approved_by_admin"
+        );
+        setEvents(approvedEvents);
+        setFilteredEvents(approvedEvents);
         setLoading(false);
       } catch (err) {
         setError("Failed to fetch events");

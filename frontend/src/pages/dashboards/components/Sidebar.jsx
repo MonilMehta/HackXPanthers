@@ -111,21 +111,26 @@ const Sidebar = () => {
   };
 
   return (
-    <motion.div
-      initial={{ x: -100, opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-       className="sticky h-screen w-64 min-w-64 bg-background/50 backdrop-blur-lg border-r border-primary/10 p-4 flex flex-col overflow-y-auto"
-       style={{position: 'sticky'}}
-    >
-      {/* Logo section with hover effect */}
+    <div className="h-full w-full bg-background p-4 flex flex-col overflow-hidden">
+      {/* Logo section - Fixed size and better visibility */}
       <motion.div
-        className="flex items-center space-x-2 mb-8 p-2 rounded-lg transition-all duration-300 hover:bg-primary/5"
+        className="flex items-center justify-center mb-8 p-2 rounded-lg bg-background"
         whileHover={{ scale: 1.02 }}
         onClick={() => navigate("/")}
       >
-        <img src={logo1} alt="logo" className="h-20 w-auto rounded-lg" />
-        <h1>X</h1>
-        <img src={logo2} alt="logo" className="h-20 w-auto rounded-lg" />
+        <div className="flex items-center gap-1 w-full">
+          <img 
+            src={logo1} 
+            alt="logo" 
+            className="h-12 w-12 object-contain rounded-lg"
+          />
+          <span className="text-xl font-bold text-primary px-1">×</span>
+          <img 
+            src={logo2} 
+            alt="logo" 
+            className="h-12 w-12 object-contain rounded-lg"
+          />
+        </div>
       </motion.div>
 
       <nav className="flex-1">
@@ -179,7 +184,7 @@ const Sidebar = () => {
           </span>
         </button>
       </div>
-    </motion.div>
+    </div>
   );
 };
 

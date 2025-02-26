@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
+import img_small from '../../../../assets/img_small.jpg';
 import {
   Calendar,
   Clock,
@@ -26,7 +27,7 @@ const mockTickets = [
     seatNumber: "A12",
     price: "₹2000",
     status: "upcoming", // upcoming, completed, cancelled
-    image: "https://source.unsplash.com/random/800x600/?comedy,event",
+    image: {img_small},
     qrCode: "data:image/png;base64,...", // Replace with actual QR code
   },
   {
@@ -40,7 +41,7 @@ const mockTickets = [
     seatNumber: "B15",
     price: "₹1500",
     status: "upcoming",
-    image: "https://source.unsplash.com/random/800x600/?standup,comedy",
+    image: {img_small},
   },
   // Add more mock tickets...
 ];
@@ -75,7 +76,7 @@ const TicketCard = ({ ticket }) => {
           <div className="relative h-48">
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10" />
             <img
-              src={ticket.image}
+              src={img_small}
               alt={ticket.eventName}
               className="w-full h-full object-cover"
             />

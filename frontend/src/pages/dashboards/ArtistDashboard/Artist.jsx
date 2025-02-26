@@ -8,12 +8,11 @@ import Profile from "./pages/Profile";
 import ArtistDashboard from "./pages/ArtistDashboard";
 import Addpost from "./pages/Addpost";
 import BookVenue from "./pages/BookVenue";
-
+import DashboardLayout from "@/components/layout/DashboardLayout";
 
 const Artist = () => {
   return (
-    <div className="flex h-screen bg-background">
-      <Sidebar />
+    <DashboardLayout sidebar={Sidebar}>
       <Routes>
         <Route path="/" element={<ArtistDashboard />} />
         <Route path="profile" element={<Profile />} />
@@ -23,7 +22,7 @@ const Artist = () => {
         <Route path="addpost" element={<Addpost />} />
         <Route path="booking" element={<BookVenue />} />
       </Routes>
-    </div>
+    </DashboardLayout>
   );
 };
 

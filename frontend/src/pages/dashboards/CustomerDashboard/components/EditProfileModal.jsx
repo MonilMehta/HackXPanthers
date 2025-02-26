@@ -1,15 +1,19 @@
 import React, { useState } from "react";
+import axios from 'axios';
+import { toast } from 'sonner';
+import { updateDetails } from "@/api/user.api";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-const EditProfileModal = ({ isOpen, onClose, userData, onUpdate }) => {
+const EditProfileModal = ({ isOpen, onClose, userData, onUpdate = () => {} }) => {
   const [formData, setFormData] = useState({
     fullName: userData?.fullName || "",
     phone_no: userData?.phone_no || "",
@@ -23,9 +27,41 @@ const EditProfileModal = ({ isOpen, onClose, userData, onUpdate }) => {
     },
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onUpdate(formData);
+    try {
+      const accessToken = localStorage.getItem("accessToken");
+      if (!accessToken) {
+        toast.error("Please login to continue");
+        onClose();
+        return;
+      }
+
+      const response = await axios.patch(
+        updateDetails,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (response.data?.success) {
+        onUpdate(response.data.data);
+        toast.success("Profile updated successfully");
+        onClose();
+      } else {
+        throw new Error(response.data?.message || "Failed to update profile");
+      }
+    } catch (error) {
+      toast.error(error.message || "Error updating profile");
+      if (error.response?.status === 401) {
+        onClose();
+        window.location.href = "/signin";
+      }
+    }
   };
 
   const handleChange = (e) => {
@@ -52,6 +88,9 @@ const EditProfileModal = ({ isOpen, onClose, userData, onUpdate }) => {
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Edit Profile</DialogTitle>
+          <DialogDescription>
+            Make changes to your profile information here.
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">

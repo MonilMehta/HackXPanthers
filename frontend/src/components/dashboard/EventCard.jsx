@@ -35,23 +35,8 @@ const EventCard = ({ event }) => {
           </div>
         )}
 
-        {/* Status Badge */}
-        <div className="absolute top-4 right-4">
-          <span
-            className={`px-2 py-1 rounded-full text-xs font-medium 
-            ${
-              event.status === "approved"
-                ? "bg-green-500"
-                : event.status === "pending"
-                ? "bg-yellow-500"
-                : "bg-red-500"
-            } 
-            text-white backdrop-blur-sm`}
-          >
-            {event.status}
-          </span>
-        </div>
-
+        {/* Removed status badge since all events are approved */}
+        
         {/* Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
       </div>

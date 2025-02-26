@@ -14,18 +14,7 @@ const SearchBar = ({ onSearch }) => {
             onChange={(e) => onSearch(e.target.value)}
           />
         </div>
-        <div className="flex gap-3">
-          <select className="p-3 rounded-lg bg-background/50 border border-border text-foreground">
-            <option>All Types</option>
-            <option>standup</option>
-            <option>music</option>
-            <option>theatre</option>
-          </select>
-          <button className="p-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center gap-2">
-            <Filter className="h-5 w-5" />
-            <span className="hidden md:inline">Filter</span>
-          </button>
-        </div>
+        
       </div>
     </div>
   );

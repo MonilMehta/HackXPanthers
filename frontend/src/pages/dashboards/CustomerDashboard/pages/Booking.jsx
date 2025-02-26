@@ -36,6 +36,8 @@ const Booking = () => {
   const [promoCode, setPromoCode] = useState("");
   const [isPromoApplied, setIsPromoApplied] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedSeats, setSelectedSeats] = useState([]);
+  const [bookingDetails, setBookingDetails] = useState(null);
 
   useEffect(() => {
     const fetchEventDetails = async () => {
@@ -160,17 +162,45 @@ const Booking = () => {
     }
   };
 
-  const handlePromoCode = () => {
-    if (promoCode.trim()) {
-      setIsPromoApplied(true);
-      // You can add more complex promo code validation logic here
+  const handleBooking = async (total) => {
+    try {
+      if (!selectedSeats.length) {
+        toast.error("Please select seats first");
+        return;
+      }
+
+      const paymentDetails = {
+        amount: total, // Use the discounted total passed from modal
+        seats: selectedSeats,
+        ticketCount: selectedSeats.length,
+      };
+
+      await handlePayment(paymentDetails);
+    } catch (error) {
+      toast.error("Payment failed: " + error.message);
     }
   };
 
+  const bookingModalContent = () => (
+    <BookingModal
+      isOpen={isModalOpen}
+      onClose={() => setIsModalOpen(false)}
+      event={event}
+      onSeatSelect={handleSeatSelection}
+      selectedSeats={selectedSeats}
+      onConfirm={handleBooking}
+      price={event.proposedPrice}
+    />
+  );
+
+  const calculateDiscount = () => {
+    const subtotal = event.proposedPrice * (selectedSeats.length || ticketCount);
+    return isPromoApplied ? subtotal * 0.05 : 0; // 5% discount
+  };
+
   const calculateTotal = () => {
-    const subtotal = event.proposedPrice * ticketCount;
-    const discount = isPromoApplied ? subtotal * 0.05 : 0; // 5% discount
-    return subtotal - discount;
+    const subtotal = event.proposedPrice * (selectedSeats.length || ticketCount);
+    return subtotal - calculateDiscount();
   };
 
   const getMapUrl = (venue) => {
@@ -287,6 +317,43 @@ const Booking = () => {
     }
   };
 
+  const handleSeatSelection = (seats) => {
+    setSelectedSeats(seats);
+  };
+
+  const handlePromoCode = () => {
+    if (promoCode.toLowerCase() === 'first50') {
+      setIsPromoApplied(true);
+      toast.success("Promo code applied successfully!");
+    } else {
+      toast.error("Invalid promo code");
+      setIsPromoApplied(false);
+    }
+  };
+
+  const renderPriceBreakdown = () => {
+    if (!selectedSeats.length) return null;
+
+    return (
+      <div className="mt-4 space-y-2">
+        <div className="flex justify-between">
+          <span>Subtotal ({selectedSeats.length} tickets)</span>
+          <span>₹{event.proposedPrice * selectedSeats.length}</span>
+        </div>
+        {isPromoApplied && (
+          <div className="flex justify-between text-green-500">
+            <span>Discount</span>
+            <span>-₹{calculateDiscount()}</span>
+          </div>
+        )}
+        <div className="flex justify-between font-bold">
+          <span>Total</span>
+          <span>₹{calculateTotal()}</span>
+        </div>
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -332,11 +399,7 @@ const Booking = () => {
       </div>
 
       {/* Booking Modal */}
-      <BookingModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        event={event}
-      />
+      {bookingModalContent()}
     </div>
   );
 

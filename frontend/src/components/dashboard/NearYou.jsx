@@ -1,22 +1,39 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Filter } from "lucide-react";
 import { getAllEvents } from "@/api/event.api";
 import { getOneUser } from "@/api/user.api";
 import axios from "axios";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import img_small from "@/assets/img_small.jpg";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const NearYou = () => {
   const [nearbyEvents, setNearbyEvents] = useState([]);
+  const [filterType, setFilterType] = useState('all');
+  const [filterValue, setFilterValue] = useState('all');
+  const [filterOptions, setFilterOptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userPincode, setUserPincode] = useState(null);
   const navigate = useNavigate();
 
+  const filterTypes = {
+    all: { label: 'All', options: ['all'] },
+    venue: { label: 'Venue', options: [] },
+    price: { label: 'Price', options: ['0-500', '501-1000', '1000+'] },
+    date: { label: 'Date', options: ['today', 'this-week', 'this-month'] },
+    genre: { label: 'Genre', options: [] }
+  };
+
   const calculateProximity = (userPin, venuePin) => {
     if (!userPin || !venuePin) return Infinity;
-
-    // Convert pincodes to numbers and get absolute difference
     const userPinNum = parseInt(userPin);
     const venuePinNum = parseInt(venuePin);
     return Math.abs(userPinNum - venuePinNum);
@@ -25,6 +42,17 @@ const NearYou = () => {
   useEffect(() => {
     fetchUserAndEvents();
   }, []);
+
+  useEffect(() => {
+    if (nearbyEvents.length > 0) {
+      const venues = [...new Set(nearbyEvents.map(e => e.venueId?.name).filter(Boolean))];
+      const genres = [...new Set(nearbyEvents.flatMap(e => e.genres || []))];
+      
+      filterTypes.venue.options = venues;
+      filterTypes.genre.options = genres;
+      setFilterOptions(filterTypes[filterType]?.options || []);
+    }
+  }, [nearbyEvents, filterType]);
 
   const fetchUserAndEvents = async () => {
     try {
@@ -35,9 +63,6 @@ const NearYou = () => {
         toast.error("Please login to see events near you");
         return;
       }
-
-      // Debug user request
-      console.log("Making user request with:", { userId, accessToken });
 
       const userResponse = await axios.post(
         getOneUser,
@@ -50,20 +75,15 @@ const NearYou = () => {
         }
       );
 
-      console.log("User Response:", userResponse.data);
-
       if (userResponse.data.success) {
         const userPincode = userResponse.data.data.address?.pincode;
-        console.log("User Pincode:", userPincode);
         setUserPincode(userPincode);
 
         if (!userPincode) {
-          console.log("No pincode found in user data");
+          setLoading(false);
           return;
         }
 
-        // Fetch and log all events
-        console.log("Fetching all events...");
         const eventsResponse = await axios.get(getAllEvents, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -71,37 +91,15 @@ const NearYou = () => {
           },
         });
 
-        console.log("All Events Response:", eventsResponse.data);
-        console.log("Total Events Fetched:", eventsResponse.data.data.length);
-
         if (eventsResponse.data.success) {
           const allEvents = eventsResponse.data.data;
-          console.log("All Events:", allEvents);
-
-          // Log each event's details
-          allEvents.forEach((event, index) => {
-            console.log(`Event ${index + 1}:`, {
-              id: event._id,
-              title: event.title,
-              venue: event.venueId?.name,
-              venuePincode: event.venueId?.address?.pincode,
-              proximity: calculateProximity(
-                userPincode,
-                event.venueId?.address?.pincode
-              ),
-            });
-          });
-
-          const nearbyEvents = allEvents.filter((event) => {
+          const nearby = allEvents.filter((event) => {
             const venuePincode = event.venueId?.address?.pincode;
             const proximity = calculateProximity(userPincode, venuePincode);
             return proximity < 5;
           });
 
-          console.log("Filtered Nearby Events:", nearbyEvents);
-          console.log("Number of Nearby Events:", nearbyEvents.length);
-
-          setNearbyEvents(nearbyEvents);
+          setNearbyEvents(nearby);
         }
       }
     } catch (error) {
@@ -113,6 +111,50 @@ const NearYou = () => {
       setLoading(false);
     }
   };
+
+  const filterEvents = () => {
+    if (filterType === 'all' || filterValue === 'all') return nearbyEvents;
+
+    return nearbyEvents.filter(event => {
+      switch (filterType) {
+        case 'venue':
+          return event.venueId?.name === filterValue;
+        
+        case 'price':
+          const price = event.proposedPrice;
+          switch (filterValue) {
+            case '0-500': return price <= 500;
+            case '501-1000': return price > 500 && price <= 1000;
+            case '1000+': return price > 1000;
+            default: return true;
+          }
+        
+        case 'date':
+          const eventDate = new Date(event.eventDate);
+          const today = new Date();
+          switch (filterValue) {
+            case 'today':
+              return eventDate.toDateString() === today.toDateString();
+            case 'this-week':
+              const weekEnd = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+              return eventDate >= today && eventDate <= weekEnd;
+            case 'this-month':
+              return eventDate.getMonth() === today.getMonth() && 
+                     eventDate.getFullYear() === today.getFullYear();
+            default:
+              return true;
+          }
+        
+        case 'genre':
+          return event.genres?.includes(filterValue);
+        
+        default:
+          return true;
+      }
+    });
+  };
+
+  const filteredEvents = filterEvents();
 
   if (loading) {
     return (
@@ -145,75 +187,94 @@ const NearYou = () => {
     );
   }
 
-  if (nearbyEvents.length === 0) {
-    return (
-      <div className="max-w-6xl mx-auto px-4 py-12">
-        <div className="text-center">
-          <h2 className="text-3xl font-bold mb-4">No Events Nearby</h2>
-          <p className="text-muted-foreground mb-4">
-            We couldn't find any events near pincode {userPincode}.
-          </p>
-          <Button onClick={() => navigate("/customer/events")}>
-            View All Events
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="max-w-6xl mx-auto px-4 py-12">
-      <h2 className="text-3xl font-bold mb-8 text-foreground">
-        Events Near You ({userPincode})
-      </h2>
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-8">
+        <h2 className="text-3xl font-bold text-foreground">Events Near You</h2>
+        
+        <div className="flex flex-wrap gap-4 items-center">
+          <div className="flex items-center gap-2">
+            <Filter className="w-5 h-5 text-muted-foreground" />
+            <Select onValueChange={setFilterType} value={filterType}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by..." />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(filterTypes).map(([key, { label }]) => (
+                  <SelectItem key={key} value={key}>{label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {filterType !== 'all' && (
+            <Select onValueChange={setFilterValue} value={filterValue}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select value..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                {filterOptions.map(option => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {nearbyEvents.map((event) => (
+        {filteredEvents.map((event) => (
           <div
             key={event._id}
-            className="glass-card rounded-xl overflow-hidden venue-card hover:shadow-lg"
+            className="glass-card rounded-xl overflow-hidden venue-card hover:shadow-lg transition-all cursor-pointer"
+            onClick={() => navigate(`/customer/booking/${event._id}`)}
           >
             <div className="relative">
               <img
-                src={
-                  event.mediaAssets?.bannerImageUrl ||
-                  event.mediaAssets?.thumbnailUrl ||
-                  "/default-event.jpg"
-                }
+                src={event.mediaAssets?.bannerImageUrl || 
+                    event.mediaAssets?.thumbnailUrl || 
+                    img_small}
                 alt={event.title}
                 className="w-full h-64 object-cover"
               />
-              <div className="absolute bottom-0 left-0 right-0 bg-black/60 p-3 flex justify-between items-center">
-                <div>
-                  <h3 className="text-lg font-bold text-white">
-                    {event.title}
-                  </h3>
+              <div className="absolute bottom-0 left-0 right-0 bg-black/60 p-4">
+                <div className="space-y-2">
+                  <h3 className="text-lg font-bold text-white">{event.title}</h3>
                   <div className="flex justify-between items-center">
-                    <p className="text-xs text-white">
-                      {event.venueId?.name} •{" "}
-                      {new Date(event.eventDate).toLocaleDateString()}
+                    <p className="text-sm text-white">
+                      {event.venueId?.name} • {new Date(event.eventDate).toLocaleDateString()}
                     </p>
-                    <p className="text-xs text-white">
-                      Distance:{" "}
-                      {calculateProximity(
-                        userPincode,
-                        event.venueId?.address?.pincode
-                      )}{" "}
-                      units
+                    <p className="text-sm font-semibold text-white">
+                      ₹{event.proposedPrice}
                     </p>
                   </div>
+                  {event.genres && (
+                    <div className="flex gap-2 flex-wrap">
+                      {event.genres.map((genre, index) => (
+                        <span key={index} className="text-xs px-2 py-1 bg-white/20 rounded-full text-white">
+                          {genre}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  onClick={() => navigate(`/customer/booking/${event._id}`)}
-                >
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
               </div>
             </div>
           </div>
         ))}
       </div>
+
+      {filteredEvents.length === 0 && (
+        <div className="text-center py-12">
+          <h3 className="text-xl font-semibold mb-2">No events found</h3>
+          <p className="text-muted-foreground">
+            Try adjusting your filters to see more events
+          </p>
+        </div>
+      )}
     </div>
   );
 };

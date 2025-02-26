@@ -7,10 +7,11 @@ import Moderation from "./pages/Moderation";
 import Analytics from "./pages/Analytics";
 import { Routes, Route } from "react-router-dom";
 import ManageProposal from "./pages/ManageProposal";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+
 const Admin = () => {
   return (
-    <div className="flex h-screen bg-background">
-      <Sidebar />
+    <DashboardLayout sidebar={Sidebar}>
       <Routes>
         <Route path="/" element={<AdminDashboard />} />
         <Route path="users" element={<Users />} />
@@ -19,7 +20,7 @@ const Admin = () => {
         <Route path="analytics" element={<Analytics />} />
         <Route path="proposal" element={<ManageProposal />} />
       </Routes>
-    </div>
+    </DashboardLayout>
   );
 };
 

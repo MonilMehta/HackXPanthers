@@ -23,47 +23,42 @@ const Profile = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      toast.error("Please login to continue");
+      navigate("/signin");
+      return;
+    }
     fetchUserData();
   }, []);
 
   const fetchUserData = async () => {
     try {
       const accessToken = localStorage.getItem("accessToken");
-      console.log("Access Token:", accessToken); // Debug log
-
       if (!accessToken) {
-        toast.error("Please login to continue");
-        navigate("/signin");
-        return;
+        throw new Error("No access token found");
       }
 
-      // Fixed API URL
       const response = await axios.get(currentUser, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
-          Accept: "application/json",
-          "Content-Type": "application/json",
         },
       });
 
-      console.log("Raw Response:", response);
-
-      if (response.data && response.data.success) {
+      if (response.data?.success) {
         setUserData(response.data.data);
-        setError(null);
       } else {
-        throw new Error("Invalid response format");
+        throw new Error(response.data?.message || "Failed to fetch user data");
       }
     } catch (error) {
-      console.error("Error details:", error);
-      toast.error(
-        error.response?.data?.message || "Error fetching profile data"
-      );
-
       if (error.response?.status === 401) {
         localStorage.removeItem("accessToken");
+        toast.error("Session expired. Please login again");
         navigate("/signin");
+      } else {
+        toast.error(error.message || "Error fetching profile data");
       }
+      setError(error.message);
     } finally {
       setIsLoading(false);
     }
@@ -78,26 +73,21 @@ const Profile = () => {
   const fetchFollowings = async () => {
     try {
       const accessToken = localStorage.getItem("accessToken");
+      if (!accessToken) throw new Error("No access token found");
+
       const response = await axios.get(getFollowings, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
+        params: {
+          userId: userData._id,
+        }
       });
-
-      console.log("Followings Response:", response.data);
-
-      if (response.data.success) {
-        // Update this line to access the correct data structure
-        const followingsData = response.data.data.artist || [];
-        setFollowings(followingsData);
-        console.log("Processed Followings:", followingsData);
-      }
+      
+      setFollowings(response.data?.data || []);
     } catch (error) {
-      console.error("Error fetching followings:", error);
-      toast.error("Failed to fetch following artists");
-      setFollowings([]);
-    } finally {
-      setFollowingsLoading(false);
+      console.error('Error fetching followings:', error);
+      setFollowings([]); // Set empty array on error
     }
   };
 
@@ -116,6 +106,7 @@ const Profile = () => {
           "Content-Type": "application/json",
         },
       });
+      console.log("Update Profile Response:", response);
 
       if (response.data.success) {
         setUserData(response.data.data);
