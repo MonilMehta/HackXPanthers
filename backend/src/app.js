@@ -49,5 +49,6 @@ app.use("/api/reviews", reviewRouter)
 app.use("/api/whistlist", whistlistRouter)
 app.use("/api/posts", postRouter)
 app.use("/api/analytics", analyticRouter)
+app.use("/", (req, res) => {res.status(200).json({ message: "OK" })})
 
 export { app }
