@@ -9,7 +9,6 @@ import {
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { Link as Lk } from "react-router-dom";
 import logo from '../../assets/logo.svg';
-import logo2 from '../../assets/ettaralogo.jpg';
 
 const Navbar = () => {
   const [darkMode, setDarkMode] = useState(false);
@@ -25,8 +24,7 @@ const Navbar = () => {
         <div className="flex items-center justify-between">
           {/* Logo */}
           <div className="font-bold text-2xl flex flex-row items-center space-x-2">
-          <img src={logo2} alt="Logo" className="h-24 w-auto" />
-          <h1>X</h1>
+          
           <img src={logo} alt="Logo" className="h-24 w-auto" /> 
           </div>
 
