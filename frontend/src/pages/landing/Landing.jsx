@@ -5,7 +5,7 @@ import { Hero } from './Hero';
 import { Features } from './Features';
 import { Statistics } from './Statistics';
 import { Testimonials } from './Testimonials';
-import {CallToAction} from './CallToAction';
+import { CallToAction } from './CalltoAction';
 import Navbar from '../components/Navbar';
 import Footer from '../footer/footer';
 import { AuroraText } from "@/components/magicui/aurora-text";
