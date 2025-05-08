@@ -111,6 +111,24 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 Project Link: [https://github.com/MonilMehta/comedyconnect](https://github.com/MonilMehta/comedyconnect)
 
+## Credentials
+->Venue Manager : 
+email : venueadmin@example.com
+pass : Pass@123
+
+
+->Admin 
+email : a@a.a
+pass : a
+
+->Artist 
+email : eg@gmail.com
+pass : Pass@123
+
+->Customer 
+email : test@gmail.com
+pass : Pass@123
+
 ---
 
 <div align="center">
